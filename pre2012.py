@@ -22,9 +22,11 @@ def Initial_deletes(df):
     return df
 
     
+# ASSUMPTIONS: each input dataframe should have identical cusip_id
 # Processing applied only to pre-2012 data
 def pre2012(df):
     df = sameday_corrections(df)
+    df = reversals(df)
     
     return df
 
@@ -42,19 +44,58 @@ def sameday_corrections(df):
     for idx, trd in tradesCW.iterrows():
         # Filtre out sameday trades
         day_trds = df[df['trd_rpt_dt'] == trd['trd_rpt_dt']]
+        
         # Find matching message sequence number
         orig_trds = day_trds[day_trds['msg_seq_nb'] == trd['orig_msg_seq_nb']]
         trds_to_drop = trds_to_drop.append(orig_trds)
     
-    df.drop(trds_to_drop.index, inplace = True)
+    df = df.drop(trds_to_drop.index, axis = 0)
+    
+    return df
+
+def reversals(df):
+    # Identify reversals
+    df_R = df[df['asof_cd'] == "R"]
+    # Also, Reversals must have report day > execution date
+    df_R = df_R[df_R['trd_rpt_dt'] > df_R['trd_exctn_dt']]
+    
+    # All reversals will be deleted
+    trds_to_drop = df_R
+    
+    nRev = trds_to_drop.shape[0]
+    print "Number of Reversals is", nRev
+    
+    for idx, trd in df_R.iterrows():
+        # Filtre out trades with same execution date
+        day_trds = df[df['trd_exctn_dt'] == trd['trd_exctn_dt']]
+        # Avoid matching Reversals with itself
+        day_trds = day_trds[day_trds['asof_cd'] != "R"]
+        
+        # Find trades that match with the Reversal trade
+        match = np.all([day_trds['trd_exctn_tm'] == trd['trd_exctn_tm'], \
+                       day_trds['rptd_pr'] == trd['rptd_pr'], \
+                       day_trds['entrd_vol_qt'] == trd['entrd_vol_qt'], \
+                       day_trds['rpt_side_cd'] == trd['rpt_side_cd'], \
+                       day_trds['cntra_mp_id'] == trd['cntra_mp_id']], \
+                       axis = 0)
+        Rmatch = day_trds[match]
+        
+        if Rmatch.shape[0] > 0:
+            # Only use at most 1 match of reversal
+            trds_to_drop = trds_to_drop.append(Rmatch.iloc[0])
+    
+    nMatch = trds_to_drop.shape[0] - nRev
+    print "Number of Reverasal match is", nMatch
+    
+    df = df.drop(trds_to_drop.index, axis = 0)
     
     return df
     
-    
-    
+
 ## For testing only
 if __name__ == "__main__":
-    df = pd.read_csv('./data/BAC.HQO_20100331_20140330_raw.csv')
+    df = pd.read_csv('./data/BAC.HQO_20100331_20140330_raw.csv', \
+                     low_memory=False) # To silent warnings
 
     # common pre-processing for all data
     df = Initial_deletes(df)
