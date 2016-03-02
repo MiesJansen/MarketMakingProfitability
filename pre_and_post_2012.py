@@ -25,6 +25,8 @@ def Initial_deletes(df):
 # ASSUMPTIONS: each input dataframe should have identical cusip_id
 # Processing applied only to pre-2012 data
 def pre2012(df):
+    print "Cleaning pre-2012 data..."
+    
     df = sameday_corrections(df)
     df = reversals(df)
     
@@ -40,9 +42,8 @@ def sameday_corrections(df):
     # TO-FIX: this loop seems super inefficient (very slow).
     #         How to isolate trades of the same day better?
     # 2. original trade of cancellation(C) and correction(W) orders 
-
     tradesCW = df[df['trc_st'].isin(["C", "W"])]
-    print (tradesCW['trd_rpt_dt'])
+
     for idx, trd in tradesCW.iterrows():
         # Filtre out sameday trades
         day_trds = df[df['trd_rpt_dt'] == trd['trd_rpt_dt']]
@@ -94,6 +95,8 @@ def reversals(df):
     return df
 
 def post2012(df):
+    print "Cleaning post-2012 data..."
+    
     df = sameday_corrections_post(df)
     return df
 
@@ -142,20 +145,21 @@ def sameday_corrections_post(df):
 
     return df_temp_raw3
 
+
 ## For testing only
 if __name__ == "__main__":
-    df = pd.read_csv('C:\Users\Alex\Desktop\Industry Project\\trace_data.csv', \
+    df0 = pd.read_csv('C:\Users\Alex\Desktop\Industry Project\\trace_data.csv', \
                      low_memory=False) # To silent warnings
 
     # common pre-processing for all data
-    df = Initial_deletes(df)
+    df1 = Initial_deletes(df0)
     
     # Extract data before Feb 6, 2012
-    df_pre2012 = df[df['trd_rpt_dt'] < 20120206]
-    df_post2012 = df[df['trd_rpt_dt'] >= 20120206]
+    df_pre2012 = df1[df1['trd_rpt_dt'] < 20120206]
+    df_post2012 = df1[df1['trd_rpt_dt'] >= 20120206]
 
     df_pre2012 = pre2012(df_pre2012)
-    df_post2012 = post2012(df_post2012)
+    print "Dimension of processed pre2012 dataset is", df_pre2012.shape
     
-    print(df_pre2012.shape)
-    print(df_post2012.shape)
+    df_post2012 = post2012(df_post2012)
+    print "Dimension of processed post2012 dataset is", df_post2012.shape
