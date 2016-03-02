@@ -165,6 +165,61 @@ def AgencyTransac(df):
     
     return df_temp3
 
+def Final_Clean(df):
+    print
+    print "Cleaning inter-dealer transactions..."
+    # Identify one of interdealer transactions, e.g. buy side, and remove it
+    rows_interdealer = np.all([df['cntra_mp_id'] == 'D', \
+                               df['rpt_side_cd'] == 'B'], axis = 0)
+    df_temp1 = df[~rows_interdealer]
+    
+    # Is there a need to label inter-dealer trades' report side to 'D'?
+    ## Re-value 'rpt_side_cd' to 'D', representing inter-dealer transactions
+    #rows_interdealer = np.all([df['cntra_mp_id'] == 'D', \
+                               #df['rpt_side_cd'] == 'S'], axis = 0)
+    #df_temp1.loc[rows_interdealer, 'rpt_side_cd'] = 'D'
+    print "Remaining observations", df_temp1.shape[0]
+
+    print
+    print "Removing When-Issued trades..."
+    df_temp2 = df_temp1[df_temp1['wis_fl'] != 'Y']
+    print "Remaining observations", df_temp2.shape[0]
+    
+    print
+    print "Removing trades on irrelavant markets..."
+    df_temp3 = df_temp2[~df_temp2['trdg_mkt_cd'].isin(["P1", "P2", "S2"])]
+    print "Remaining observations", df_temp3.shape[0]
+    
+    print
+    print "Removing trades of special price..."
+    df_temp4 = df_temp3[df_temp3['spcl_trd_fl'] != 'Y']
+    print "Remaining observations", df_temp4.shape[0]
+    
+    # It is unclear how to deal with scrty_type_cd = ¡¯C¡¯ / NA
+    #print
+    #print "Removing equity linked note/not a cash trade..."
+    
+    print
+    print "Removing trades of abnormal long settlement period..."
+    df_temp5 = df_temp4[~(df_temp4['days_to_sttl_ct'] >= 6)]
+    print "Remaining observations", df_temp5.shape[0]
+    
+    # It is unclear how to deal with 'C' from SAS code
+    #print
+    #print "Removing trades of non-cash sales..."
+
+    print
+    print "Removing all commissioned trades..."
+    df_temp6 = df_temp5[df_temp5['cmsn_trd'] == 'N']
+    print "Remaining observations", df_temp6.shape[0]
+    
+    print
+    print "Removing automatic give-up trades..."
+    df_temp7 = df_temp6[~df_temp6['agu_qsr_id'].isin(["A", "Q"])]
+    print "Remaining observations", df_temp7.shape[0]
+    
+    return df_temp7
+
 ## For testing only
 if __name__ == "__main__":
     df0 = pd.read_csv('C:\Users\Alex\Desktop\Industry Project\\trace_data.csv', \
@@ -189,4 +244,6 @@ if __name__ == "__main__":
     
     df3 = AgencyTransac(df2)
     print "Dimension of dataset without agency transaction is", df3.shape
+    
+    df4 = Final_Clean(df3)
     
