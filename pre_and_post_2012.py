@@ -146,6 +146,25 @@ def sameday_corrections_post(df):
     return df_temp_raw3
 
 
+def AgencyTransac(df):
+    print "Cleaning agency transactions..."
+    
+    # Isolate transactions with customers, without commission
+    rows_to_clean = np.all([df['cntra_mp_id'] == 'C', df['cmsn_trd'] == 'N'], \
+                           axis = 0)
+    df_temp1 = df[rows_to_clean]
+    
+    # Identify and drop agency transactions
+    rows_buyAg = np.all([df_temp1['rpt_side_cd'] == 'B', \
+                         df_temp1['buy_cpcty_cd'] == 'A'], axis = 0)
+    rows_sellAg = np.all([df_temp1['rpt_side_cd'] == 'S', \
+                          df_temp1['sell_cpcty_cd'] == 'A'], axis = 0)
+    df_temp2 = df_temp1[np.any([rows_buyAg, rows_sellAg], axis = 0)]
+    
+    df_temp3 = df.drop(df_temp2.index, axis = 0)
+    
+    return df_temp3
+
 ## For testing only
 if __name__ == "__main__":
     df0 = pd.read_csv('C:\Users\Alex\Desktop\Industry Project\\trace_data.csv', \
@@ -163,3 +182,11 @@ if __name__ == "__main__":
     
     df_post2012 = post2012(df_post2012)
     print "Dimension of processed post2012 dataset is", df_post2012.shape
+
+    # Recombine the pre-/post-2012 data frames
+    df2 = pd.concat([df_pre2012, df_post2012], ignore_index = True)
+    print "Dimension of recombined dataset is", df2.shape
+    
+    df3 = AgencyTransac(df2)
+    print "Dimension of dataset without agency transaction is", df3.shape
+    
