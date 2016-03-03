@@ -1,9 +1,14 @@
 import pandas as pd
 import numpy as np
 
-# TO-DO: pre/post2012 code needs to be merge (now standalone).
-# TO-DO: add some statistics, e.g. # of matched same day cancellation/correction
-#        or even keep a copy of all deleted entries for record.
+# TO-DO: Reporting stats to a log file
+# TO-DO: keep deleted observations to a separate file
+
+# A directory for holding raw/processed data
+# DO NOT push any data file to Github
+DATA_PATH = './data/'
+DATA_NAME = 'BAC.HQO_20100331_20140330'
+
 
 # enhanced TRACE columns that are not useful in analysis
 COLS_TO_REMOVE = ['company_symbol', 'sale_cndtn2_cd', 'dissem_fl', 'SUB_PRDCT',\
@@ -222,7 +227,7 @@ def Final_Clean(df):
 
 ## For testing only
 if __name__ == "__main__":
-    df0 = pd.read_csv('C:\Users\Alex\Desktop\Industry Project\\trace_data.csv', \
+    df0 = pd.read_csv(DATA_PATH + DATA_NAME + "_raw.csv", \
                      low_memory=False) # To silent warnings
 
     # common pre-processing for all data
@@ -247,3 +252,5 @@ if __name__ == "__main__":
     
     df4 = Final_Clean(df3)
     
+    # TO-DO: sort entries by execution date and time before outputting
+    df4.to_csv(DATA_PATH + DATA_NAME + "_clean.csv")
