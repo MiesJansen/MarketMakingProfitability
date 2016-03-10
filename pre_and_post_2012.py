@@ -10,19 +10,21 @@ DATA_PATH = './data/'
 DATA_NAME = 'multiple'
 
 
-# enhanced TRACE columns that are not useful in analysis
-COLS_TO_REMOVE = ['company_symbol', 'sale_cndtn2_cd', 'dissem_fl', 'SUB_PRDCT',\
-                  'STLMNT_DT', 'TRD_MOD_3', 'TRD_MOD_4', 'LCKD_IN_IND', \
-                  'PR_TRD_DT']
+def remove_cols(df, rm_columns):
+    # find common elements in to_drop columns and imported dataframe columns
+    cols_to_remove = [col for col in df.columns if col in rm_columns]
+    df = df.drop(cols_to_remove, axis = 1)
+    
+    return df
 
 # dropping rows and columns, applied to all data
-def Initial_deletes(df):    
-    # delete items without cusip_id
-    df = df[df['cusip_id'] != '']
+def Initial_deletes(df):
+    # enhanced TRACE columns that are not useful in analysis
+    COLS_TO_REMOVE = ['company_symbol', 'sale_cndtn2_cd', 'dissem_fl', 'SUB_PRDCT',\
+                      'STLMNT_DT', 'TRD_MOD_3', 'TRD_MOD_4', 'LCKD_IN_IND', \
+                      'PR_TRD_DT', 'buy_cmsn_rt', 'sell_cmsn_rt']
     
-    # find common elements in to_drop columns and imported dataframe columns
-    cols_to_remove = [col for col in df.columns if col in COLS_TO_REMOVE]
-    df.drop(cols_to_remove, axis = 1,inplace = True)
+    df = remove_cols(df, COLS_TO_REMOVE)
 
     return df
 
@@ -204,6 +206,20 @@ def Final_Clean(df):
     return df_temp7
 
 
+def Tailor_Data(df):
+    # Note: we haven't done any cleaning regarding scrty_ty_cd and sale_cndtn_cd,
+    #  due to unknown property of these columns
+    COLS_TO_REMOVE = ['trd_rpt_dt', 'trd_rpt_tm', 'msg_seq_nb', 'trc_st',\
+                      'scrty_type_cd', 'wis_fl', 'cmsn_trd', 'asof_cd', \
+                      'days_to_sttl_ct', 'sale_cndtn_cd', 'rpt_side_cd', \
+                      'buy_cpcty_cd', 'sell_cpcty_cd', 'cntra_mp_id', \
+                      'agu_qsr_id', 'spcl_trd_fl', 'trdg_mkt_cd', 'orig_msg_seq_nb']
+    
+    df = remove_cols(df, COLS_TO_REMOVE)
+
+    return df
+
+
 ## ASSUMPTIONS: each input dataframe should have identical cusip_id, i.e.
 ##  representing a particular bond
 def clean_bond(df):
@@ -230,15 +246,18 @@ def clean_bond(df):
     df4 = Final_Clean(df3)
     #print "Dmension of clean dataset is", df4.shape
     
-    ## TO-DO: remove columns only necessary for cleaning data
+    # Tailor data for regression (i.e. removing unwanted columns)
+    df5 = Tailor_Data(df4)
     
-    ## TO-DO: sort entries by execution date and time before outputting
     # Output non-empty dataframs to csv
-    if (df4.shape[0] > 0):
-        bond_name = df4.iloc[0]['cusip_id']
-        df4.to_csv(DATA_PATH + bond_name + "_clean.csv")
+    if (df5.shape[0] > 0):
+        bond_name = df5.iloc[0]['cusip_id']
+        df5.to_csv(DATA_PATH + bond_name + "_clean.csv", index = False)
+        
+    # Note: this dataframe is not sorted by execution date and time
+    #  this needs to be handled while calculating proxies.
     
-    return df4
+    return df5
 
 ## For testing only
 if __name__ == "__main__":
