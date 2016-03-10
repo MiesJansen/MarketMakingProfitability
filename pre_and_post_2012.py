@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+import statsmodels.api as sm
+from patsy import dmatrices
 
 # TO-DO: Reporting stats to a log file
 # TO-DO: keep deleted observations to a separate file
@@ -7,6 +9,7 @@ import numpy as np
 # A directory for holding raw/processed data
 # DO NOT push any data file to Github
 DATA_PATH = './data/'
+DATA_PATH_1 = 'C:\Users\Alex\Desktop\Industry Project\\'
 DATA_NAME = 'BAC.HQO_20100331_20140330'
 
 
@@ -26,7 +29,6 @@ def Initial_deletes(df):
 
     return df
 
-    
 # ASSUMPTIONS: each input dataframe should have identical cusip_id
 # Processing applied only to pre-2012 data
 def pre2012(df):
@@ -36,7 +38,6 @@ def pre2012(df):
     df = reversals(df)
     
     return df
-
 
 # Adjust trade cancellations and corrections within the same day
 def sameday_corrections(df):
@@ -150,7 +151,6 @@ def sameday_corrections_post(df):
 
     return df_temp_raw3
 
-
 def AgencyTransac(df):
     print "Cleaning agency transactions..."
     
@@ -200,7 +200,7 @@ def Final_Clean(df):
     df_temp4 = df_temp3[df_temp3['spcl_trd_fl'] != 'Y']
     print "Remaining observations", df_temp4.shape[0]
     
-    # It is unclear how to deal with scrty_type_cd = ¡¯C¡¯ / NA
+    # It is unclear how to deal with scrty_type_cd = 'C' / NA
     #print
     #print "Removing equity linked note/not a cash trade..."
     
@@ -225,10 +225,50 @@ def Final_Clean(df):
     
     return df_temp7
 
+def Calculate_First_Proxy(df):
+    #price = rptd_pr
+    #yield = yld_pt
+    #volume = entrd_vol_qt
+    #yield sign = yld_sign_cd
+    #date = trd_exctn_dt
+
+    df['rptd_pr_1'] = df['rptd_pr'].shift(-1)
+    df['yld_pt_1'] = df['yld_pt'].shift(-1)
+
+    df['numeric_sign'] = np.where(df['yld_sign_cd'] == '+', 1, ' ')
+    # -1 if (-) and +1 for blanks
+    df['volume_and_sign'] = np.where(df['yld_sign_cd'] == '-', -1, 1)
+    df['volume_and_sign'] = df['volume_and_sign'] * df['entrd_vol_qt']
+
+    # convert int64 date series to DateTime series
+    df['trd_exctn_dt'] = pd.to_datetime(df['trd_exctn_dt'], unit='s')
+    # set DateTime series as index od dataframe
+    df = df.set_index('trd_exctn_dt')
+
+    # Group dataframe on index by month and year
+    '''    
+    for df_group in df.groupby(pd.TimeGrouper("M")):
+        y,X = dmatrices('rptd_pr_1 ~ rptd_pr + volume_and_sign', data=df_group, return_type='dataframe')
+    '''
+
+    #df.to_csv('output.csv')
+
+    #run linear regression using equation (2) from pdf 
+    y,X = dmatrices('rptd_pr_1 ~ rptd_pr + volume_and_sign', data=df, return_type='dataframe')
+
+    mod = sm.OLS(y,X)
+
+    res = mod.fit()
+
+    print res.summary()
+
+
 ## For testing only
 if __name__ == "__main__":
-    df0 = pd.read_csv(DATA_PATH + DATA_NAME + "_raw.csv", \
-                     low_memory=False) # To silent warnings
+    '''df0 = pd.read_csv(DATA_PATH_1 + DATA_NAME + "_raw.csv", \
+                     low_memory=False) # To silent warnings'''
+
+    df0 = pd.read_csv('C:\Users\Alex\Desktop\Industry_Project\\trace_data.csv')
 
     # common pre-processing for all data
     df1 = Initial_deletes(df0)
@@ -254,3 +294,5 @@ if __name__ == "__main__":
     
     # TO-DO: sort entries by execution date and time before outputting
     df4.to_csv(DATA_PATH + DATA_NAME + "_clean.csv")
+
+    Calculate_First_Proxy(df4)
