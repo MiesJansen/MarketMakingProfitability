@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 # Uncomment print statements in the code to see detailed debug logs in console
-# TO-DO: Reporting stats to a log file
+## TO-DO: Reporting stats to a log file
 
 # A directory for holding raw/processed data
 # DO NOT push any data file to Github
@@ -27,7 +27,7 @@ def Initial_deletes(df):
     return df
 
     
-# ASSUMPTIONS: each input dataframe should have identical cusip_id
+## ASSUMPTIONS: each input dataframe should have identical cusip_id
 # Processing applied only to pre-2012 data
 def pre2012(df):
     print "Cleaning pre-2012 data..."
@@ -204,6 +204,7 @@ def Final_Clean(df):
     
     return df_temp7
 
+
 ## For testing only
 if __name__ == "__main__":
     df0 = pd.read_csv(DATA_PATH + DATA_NAME + "_raw.csv", \
@@ -232,7 +233,7 @@ if __name__ == "__main__":
     df4 = Final_Clean(df3)
     #print "Dmension of clean dataset is", df4.shape
     
-    # TO-DO: remove columns only necessary for cleaning data
+    ## TO-DO: remove columns only necessary for cleaning data
     
-    # TO-DO: sort entries by execution date and time before outputting
+    ## TO-DO: sort entries by execution date and time before outputting
     df4.to_csv(DATA_PATH + DATA_NAME + "_clean.csv")
