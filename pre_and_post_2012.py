@@ -2,7 +2,6 @@ import pandas as pd
 import numpy as np
 
 # TO-DO: Reporting stats to a log file
-# TO-DO: keep deleted observations to a separate file
 
 # A directory for holding raw/processed data
 # DO NOT push any data file to Github
@@ -40,26 +39,32 @@ def pre2012(df):
 
 # Adjust trade cancellations and corrections within the same day
 def sameday_corrections(df):
-    # Delete the following:
-    # 1. cancellation trades themselves
-    trds_to_drop = df[df['trc_st'] == "C"]
+    dfsize = df.shape[0]
     
-    # TO-FIX: this loop seems super inefficient (very slow).
-    #         How to isolate trades of the same day better?
-    # 2. original trade of cancellation(C) and correction(W) orders 
+    # 1. Mark of cancellation(C) and correction(W) orders 
     tradesCW = df[df['trc_st'].isin(["C", "W"])]
-
-    for idx, trd in tradesCW.iterrows():
-        # Filtre out sameday trades
-        day_trds = df[df['trd_rpt_dt'] == trd['trd_rpt_dt']]
-        
-        # Find matching message sequence number
-        orig_trds = day_trds[day_trds['msg_seq_nb'] == trd['orig_msg_seq_nb']]
-        trds_to_drop = trds_to_drop.append(orig_trds)
     
+    left_columns = ['trd_rpt_dt', 'msg_seq_nb']
+    right_columns = ['trd_rpt_dt', 'orig_msg_seq_nb']
+    # Merge on trade report date (sameday) and 
+    #  original message sq # from CW entries with msg sq # of raw trade data
+    # Keep the index of left dataframe (the raw trade) so we know which rows to
+    #  delete from it
+    trds_to_drop = pd.merge(left = df[left_columns],
+                            right = tradesCW[right_columns],
+                            left_on = left_columns, right_on = right_columns,
+                            how = 'inner', left_index = True)
+    # Delete any matched entries
     df = df.drop(trds_to_drop.index, axis = 0)
     
+    # 2. Delete cancellation trades themselves
+    df = df[df['trc_st'] != "C"]
+    
+    # Uncomment to see detailed logs in console
+    print "Number of sameday correction is", (dfsize - df.shape[0])
+
     return df
+
 
 def reversals(df):
     # Identify reversals
@@ -67,36 +72,18 @@ def reversals(df):
     # Also, Reversals must have report day > execution date
     df_R = df_R[df_R['trd_rpt_dt'] > df_R['trd_exctn_dt']]
     
-    # All reversals will be deleted
-    trds_to_drop = df_R
-    
-    nRev = trds_to_drop.shape[0]
-    print "Number of Reversals is", nRev
-    
-    for idx, trd in df_R.iterrows():
-        # Filtre out trades with same execution date
-        day_trds = df[df['trd_exctn_dt'] == trd['trd_exctn_dt']]
-        # Avoid matching Reversals with itself
-        day_trds = day_trds[day_trds['asof_cd'] != "R"]
-        
-        # Find trades that match with the Reversal trade
-        match = np.all([day_trds['trd_exctn_tm'] == trd['trd_exctn_tm'], \
-                       day_trds['rptd_pr'] == trd['rptd_pr'], \
-                       day_trds['entrd_vol_qt'] == trd['entrd_vol_qt'], \
-                       day_trds['rpt_side_cd'] == trd['rpt_side_cd'], \
-                       day_trds['cntra_mp_id'] == trd['cntra_mp_id']], \
-                       axis = 0)
-        Rmatch = day_trds[match]
-        
-        if Rmatch.shape[0] > 0:
-            # Only use at most 1 match of reversal
-            trds_to_drop = trds_to_drop.append(Rmatch.iloc[0])
-    
-    nMatch = trds_to_drop.shape[0] - nRev
-    print "Number of Reverasal match is", nMatch
-    
+    merge_columns = ['trd_exctn_dt', 'trd_exctn_tm', 'rptd_pr', 'entrd_vol_qt',
+                     'rpt_side_cd', 'cntra_mp_id']
+    # Note: each Reversal might find multiple matches, but since this is very
+    #  unlikely, we would NOT guarantee only 1 match is removed
+    trds_to_drop = pd.merge(df[merge_columns], df_R[merge_columns],
+                            on = merge_columns, how = 'inner', left_index = True)
     df = df.drop(trds_to_drop.index, axis = 0)
     
+    # Uncomment to see detailed logs in console
+    print "Number of Reversals is", df_R.shape[0]
+    print "Number of Reverasal match is", (trds_to_drop.shape[0] - df_R.shape[0])
+        
     return df
 
 def post2012(df):
@@ -251,6 +238,7 @@ if __name__ == "__main__":
     print "Dimension of dataset without agency transaction is", df3.shape
     
     df4 = Final_Clean(df3)
+    print "Dmension of clean dataset is", df4.shape
     
     # TO-DO: sort entries by execution date and time before outputting
     df4.to_csv(DATA_PATH + DATA_NAME + "_clean.csv")
