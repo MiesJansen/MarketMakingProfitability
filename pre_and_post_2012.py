@@ -7,7 +7,7 @@ import numpy as np
 # A directory for holding raw/processed data
 # DO NOT push any data file to Github
 DATA_PATH = './data/'
-DATA_NAME = 'BAC.HQO_20100331_20140330'
+DATA_NAME = 'multiple'
 
 
 # enhanced TRACE columns that are not useful in analysis
@@ -26,11 +26,10 @@ def Initial_deletes(df):
 
     return df
 
-    
-## ASSUMPTIONS: each input dataframe should have identical cusip_id
+
 # Processing applied only to pre-2012 data
 def pre2012(df):
-    print "Cleaning pre-2012 data..."
+    #print "Cleaning pre-2012 data..."
     
     df = sameday_corrections(df)
     df = reversals(df)
@@ -86,7 +85,7 @@ def reversals(df):
     return df
 
 def post2012(df):
-    print "Cleaning post-2012 data..."
+    #print "Cleaning post-2012 data..."
     
     df = sameday_corrections_post(df)
     return df
@@ -138,7 +137,7 @@ def sameday_corrections_post(df):
 
 
 def AgencyTransac(df):
-    print "Cleaning agency transactions..."
+    #print "Cleaning agency transactions..."
     
     # Isolate transactions with customers, without commission
     rows_to_clean = np.all([df['cntra_mp_id'] == 'C', df['cmsn_trd'] == 'N'], \
@@ -157,7 +156,7 @@ def AgencyTransac(df):
     return df_temp3
 
 def Final_Clean(df):
-    print "Cleaning inter-dealer transactions..."
+    #print "Cleaning inter-dealer transactions..."
     # Identify one of interdealer transactions, e.g. buy side, and remove it
     rows_interdealer = np.all([df['cntra_mp_id'] == 'D', \
                                df['rpt_side_cd'] == 'B'], axis = 0)
@@ -170,15 +169,15 @@ def Final_Clean(df):
     #df_temp1.loc[rows_interdealer, 'rpt_side_cd'] = 'D'
     #print "Remaining observations", df_temp1.shape[0]
 
-    print "Removing When-Issued trades..."
+    #print "Removing When-Issued trades..."
     df_temp2 = df_temp1[df_temp1['wis_fl'] != 'Y']
     #print "Remaining observations", df_temp2.shape[0]
     
-    print "Removing trades on irrelavant markets..."
+    #print "Removing trades on irrelavant markets..."
     df_temp3 = df_temp2[~df_temp2['trdg_mkt_cd'].isin(["P1", "P2", "S2"])]
     #print "Remaining observations", df_temp3.shape[0]
     
-    print "Removing trades of special price..."
+    #print "Removing trades of special price..."
     df_temp4 = df_temp3[df_temp3['spcl_trd_fl'] != 'Y']
     #print "Remaining observations", df_temp4.shape[0]
     
@@ -186,7 +185,7 @@ def Final_Clean(df):
     #print
     #print "Removing equity linked note/not a cash trade..."
     
-    print "Removing trades of abnormal long settlement period..."
+    #print "Removing trades of abnormal long settlement period..."
     df_temp5 = df_temp4[~(df_temp4['days_to_sttl_ct'] >= 6)]
     #print "Remaining observations", df_temp5.shape[0]
     
@@ -194,24 +193,22 @@ def Final_Clean(df):
     #print
     #print "Removing trades of non-cash sales..."
 
-    print "Removing all commissioned trades..."
+    #print "Removing all commissioned trades..."
     df_temp6 = df_temp5[df_temp5['cmsn_trd'] == 'N']
     #print "Remaining observations", df_temp6.shape[0]
     
-    print "Removing automatic give-up trades..."
+    #print "Removing automatic give-up trades..."
     df_temp7 = df_temp6[~df_temp6['agu_qsr_id'].isin(["A", "Q"])]
     #print "Remaining observations", df_temp7.shape[0]
     
     return df_temp7
 
 
-## For testing only
-if __name__ == "__main__":
-    df0 = pd.read_csv(DATA_PATH + DATA_NAME + "_raw.csv", \
-                     low_memory=False) # To silent warnings
-
+## ASSUMPTIONS: each input dataframe should have identical cusip_id, i.e.
+##  representing a particular bond
+def clean_bond(df):
     # common pre-processing for all data
-    df1 = Initial_deletes(df0)
+    df1 = Initial_deletes(df)
     
     # Extract data before Feb 6, 2012
     df_pre2012 = df1[df1['trd_rpt_dt'] < 20120206]
@@ -236,4 +233,26 @@ if __name__ == "__main__":
     ## TO-DO: remove columns only necessary for cleaning data
     
     ## TO-DO: sort entries by execution date and time before outputting
-    df4.to_csv(DATA_PATH + DATA_NAME + "_clean.csv")
+    # Output non-empty dataframs to csv
+    if (df4.shape[0] > 0):
+        bond_name = df4.iloc[0]['cusip_id']
+        df4.to_csv(DATA_PATH + bond_name + "_clean.csv")
+    
+    return df4
+
+## For testing only
+if __name__ == "__main__":
+    df0 = pd.read_csv(DATA_PATH + DATA_NAME + "_raw.csv", \
+                     low_memory=False) # To silent warnings
+
+    # .csv file downloaded from TRACE should already sort by bond symbol
+    #  and each bond symbol corresponds to an unique cusip_id
+    cusip_id_list = df0['cusip_id'].unique().tolist()
+    for cusip_id in cusip_id_list:
+        #print "Cleaning cusip_id", cusip_id
+        
+        # dataframe holding all trades of ONE bond at a time
+        df1 = df0.loc[df0['cusip_id'] == cusip_id]
+        df2 = clean_bond(df1)
+    
+    
