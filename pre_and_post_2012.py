@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 
+# Uncomment print statements in the code to see detailed debug logs in console
 # TO-DO: Reporting stats to a log file
 
 # A directory for holding raw/processed data
@@ -60,8 +61,7 @@ def sameday_corrections(df):
     # 2. Delete cancellation trades themselves
     df = df[df['trc_st'] != "C"]
     
-    # Uncomment to see detailed logs in console
-    print "Number of sameday correction is", (dfsize - df.shape[0])
+    #print "Number of sameday correction is", (dfsize - df.shape[0])
 
     return df
 
@@ -80,9 +80,8 @@ def reversals(df):
                             on = merge_columns, how = 'inner', left_index = True)
     df = df.drop(trds_to_drop.index, axis = 0)
     
-    # Uncomment to see detailed logs in console
-    print "Number of Reversals is", df_R.shape[0]
-    print "Number of Reverasal match is", (trds_to_drop.shape[0] - df_R.shape[0])
+    #print "Number of Reversals is", df_R.shape[0]
+    #print "Number of Reverasal match is", (trds_to_drop.shape[0] - df_R.shape[0])
         
     return df
 
@@ -158,7 +157,6 @@ def AgencyTransac(df):
     return df_temp3
 
 def Final_Clean(df):
-    print
     print "Cleaning inter-dealer transactions..."
     # Identify one of interdealer transactions, e.g. buy side, and remove it
     rows_interdealer = np.all([df['cntra_mp_id'] == 'D', \
@@ -170,45 +168,39 @@ def Final_Clean(df):
     #rows_interdealer = np.all([df['cntra_mp_id'] == 'D', \
                                #df['rpt_side_cd'] == 'S'], axis = 0)
     #df_temp1.loc[rows_interdealer, 'rpt_side_cd'] = 'D'
-    print "Remaining observations", df_temp1.shape[0]
+    #print "Remaining observations", df_temp1.shape[0]
 
-    print
     print "Removing When-Issued trades..."
     df_temp2 = df_temp1[df_temp1['wis_fl'] != 'Y']
-    print "Remaining observations", df_temp2.shape[0]
+    #print "Remaining observations", df_temp2.shape[0]
     
-    print
     print "Removing trades on irrelavant markets..."
     df_temp3 = df_temp2[~df_temp2['trdg_mkt_cd'].isin(["P1", "P2", "S2"])]
-    print "Remaining observations", df_temp3.shape[0]
+    #print "Remaining observations", df_temp3.shape[0]
     
-    print
     print "Removing trades of special price..."
     df_temp4 = df_temp3[df_temp3['spcl_trd_fl'] != 'Y']
-    print "Remaining observations", df_temp4.shape[0]
+    #print "Remaining observations", df_temp4.shape[0]
     
-    # It is unclear how to deal with scrty_type_cd = ¡¯C¡¯ / NA
+    # It is unclear how to deal with scrty_type_cd = 'C' / NA
     #print
     #print "Removing equity linked note/not a cash trade..."
     
-    print
     print "Removing trades of abnormal long settlement period..."
     df_temp5 = df_temp4[~(df_temp4['days_to_sttl_ct'] >= 6)]
-    print "Remaining observations", df_temp5.shape[0]
+    #print "Remaining observations", df_temp5.shape[0]
     
     # It is unclear how to deal with 'C' from SAS code
     #print
     #print "Removing trades of non-cash sales..."
 
-    print
     print "Removing all commissioned trades..."
     df_temp6 = df_temp5[df_temp5['cmsn_trd'] == 'N']
-    print "Remaining observations", df_temp6.shape[0]
+    #print "Remaining observations", df_temp6.shape[0]
     
-    print
     print "Removing automatic give-up trades..."
     df_temp7 = df_temp6[~df_temp6['agu_qsr_id'].isin(["A", "Q"])]
-    print "Remaining observations", df_temp7.shape[0]
+    #print "Remaining observations", df_temp7.shape[0]
     
     return df_temp7
 
@@ -225,20 +217,22 @@ if __name__ == "__main__":
     df_post2012 = df1[df1['trd_rpt_dt'] >= 20120206]
 
     df_pre2012 = pre2012(df_pre2012)
-    print "Dimension of processed pre2012 dataset is", df_pre2012.shape
+    #print "Dimension of processed pre2012 dataset is", df_pre2012.shape
     
     df_post2012 = post2012(df_post2012)
-    print "Dimension of processed post2012 dataset is", df_post2012.shape
+    #print "Dimension of processed post2012 dataset is", df_post2012.shape
 
     # Recombine the pre-/post-2012 data frames
     df2 = pd.concat([df_pre2012, df_post2012], ignore_index = True)
-    print "Dimension of recombined dataset is", df2.shape
+    #print "Dimension of recombined dataset is", df2.shape
     
     df3 = AgencyTransac(df2)
-    print "Dimension of dataset without agency transaction is", df3.shape
+    #print "Dimension of dataset without agency transaction is", df3.shape
     
     df4 = Final_Clean(df3)
-    print "Dmension of clean dataset is", df4.shape
+    #print "Dmension of clean dataset is", df4.shape
+    
+    # TO-DO: remove columns only necessary for cleaning data
     
     # TO-DO: sort entries by execution date and time before outputting
     df4.to_csv(DATA_PATH + DATA_NAME + "_clean.csv")
