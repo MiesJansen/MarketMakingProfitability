@@ -2,13 +2,6 @@ import pandas as pd
 import numpy as np
 
 # Uncomment print statements in the code to see detailed debug logs in console
-## TO-DO: Reporting stats to a log file
-
-# A directory for holding raw/processed data
-# DO NOT push any data file to Github
-DATA_PATH = './data/'
-DATA_NAME = 'multiple'
-
 
 def remove_cols(df, rm_columns):
     # find common elements in to_drop columns and imported dataframe columns
@@ -37,7 +30,6 @@ def pre2012(df):
     df = reversals(df)
     
     return df
-
 
 # Adjust trade cancellations and corrections within the same day
 def sameday_corrections(df):
@@ -137,7 +129,6 @@ def sameday_corrections_post(df):
 
     return df_temp_raw3
 
-
 def AgencyTransac(df):
     #print "Cleaning agency transactions..."
     
@@ -156,6 +147,7 @@ def AgencyTransac(df):
     df_temp3 = df.drop(df_temp2.index, axis = 0)
     
     return df_temp3
+
 
 def Final_Clean(df):
     #print "Cleaning inter-dealer transactions..."
@@ -206,6 +198,8 @@ def Final_Clean(df):
     return df_temp7
 
 
+
+
 def Tailor_Data(df):
     # Note: we haven't done any cleaning regarding scrty_ty_cd and sale_cndtn_cd,
     #  due to unknown property of these columns
@@ -222,7 +216,7 @@ def Tailor_Data(df):
 
 ## ASSUMPTIONS: each input dataframe should have identical cusip_id, i.e.
 ##  representing a particular bond
-def clean_bond(df):
+def clean_bond(df, data_dir):
     # common pre-processing for all data
     df1 = Initial_deletes(df)
     
@@ -252,26 +246,9 @@ def clean_bond(df):
     # Output non-empty dataframs to csv
     if (df5.shape[0] > 0):
         bond_name = df5.iloc[0]['cusip_id']
-        df5.to_csv(DATA_PATH + bond_name + "_clean.csv", index = False)
+        df5.to_csv(data_dir + bond_name + "_clean.csv", index = False)
         
     # Note: this dataframe is not sorted by execution date and time
     #  this needs to be handled while calculating proxies.
     
     return df5
-
-## For testing only
-if __name__ == "__main__":
-    df0 = pd.read_csv(DATA_PATH + DATA_NAME + "_raw.csv", \
-                     low_memory=False) # To silent warnings
-
-    # .csv file downloaded from TRACE should already sort by bond symbol
-    #  and each bond symbol corresponds to an unique cusip_id
-    cusip_id_list = df0['cusip_id'].unique().tolist()
-    for cusip_id in cusip_id_list:
-        #print "Cleaning cusip_id", cusip_id
-        
-        # dataframe holding all trades of ONE bond at a time
-        df1 = df0.loc[df0['cusip_id'] == cusip_id]
-        df2 = clean_bond(df1)
-    
-    
