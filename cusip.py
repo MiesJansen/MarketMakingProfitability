@@ -22,4 +22,5 @@ df['cusip_id'].astype(str)
 cusip_id_list = df['cusip_id'].unique().tolist()
 
 ids = pd.DataFrame(cusip_id_list)
-ids.to_csv(cfg.DATA_PATH + CUSIP_LIST + ".csv", index = False, header = False)
+ids.to_csv(cfg.DATA_PATH + CUSIP_LIST + ".txt", sep = ' ', \
+           index = False, header = False)
