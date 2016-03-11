@@ -1,23 +1,25 @@
-# -*- coding: utf-8 -*-
 """
 Created on Wed Mar 09 15:19:34 2016
 
 @author: Chandler
+@edit by Tom on Fri Mar 11
 """
 
-import csv
-import tablib
-a = list()
-b = list()
-with open('one-month-data.csv') as csvfile:
-    reader = csv.DictReader(csvfile)
-    for row in reader:
-        a.append(row['cusip_id'])
+import pandas as pd
 
-b = list(set(a))        
+import MMP_config as cfg
 
-headers = ('cusip_id')
-data = b
+# a file containing a list of bond symbols and cusip_id of trades 
+#  executed within 1 month before the last date of concern, from enhanced TRACE
+BOND_LIST = "list"
+CUSIP_LIST = "cusip_id_list"
 
-data = tablib.Dataset(*data,headers = headers)
-open('id.csv','wb').write(data.csv)
+df = pd.read_csv(cfg.DATA_PATH + BOND_LIST + ".csv", \
+                 low_memory=False) # To silent warnings
+
+# Obtain a unique list of cusip_id's
+df['cusip_id'].astype(str)
+cusip_id_list = df['cusip_id'].unique().tolist()
+
+ids = pd.DataFrame(cusip_id_list)
+ids.to_csv(cfg.DATA_PATH + CUSIP_LIST + ".csv", index = False, header = False)
