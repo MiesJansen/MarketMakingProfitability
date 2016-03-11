@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 import statsmodels.api as sm
 from patsy import dmatrices
+import matplotlib
+import matplotlib.pyplot as plt
 
 def Calculate_First_Proxy(df):
     #price = rptd_pr
