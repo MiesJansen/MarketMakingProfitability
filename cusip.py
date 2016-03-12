@@ -20,11 +20,21 @@ df = pd.read_csv(cfg.DATA_PATH + BOND_LIST + ".csv", \
 
 # Obtain a unique list of cusip_id's
 df['cusip_id'].astype(str)
-cusip_id_list = df['cusip_id'].unique().tolist()
+cusip_id_list = df.drop_duplicates(['cusip_id'])
 
-ids = pd.DataFrame(cusip_id_list, columns = ['cusip'])
-# Remove empty cusip ids
-ids = ids[ids['cusip'].notnull()]
+# Remove empty entries
+cusip_id_list = cusip_id_list[cusip_id_list['cusip_id'].notnull()]
+cusip_id_list = cusip_id_list[cusip_id_list['company_symbol'].notnull()]
+cusip_id_list = cusip_id_list[cusip_id_list['bond_sym_id'] != '.']
 
-ids.to_csv(cfg.DATA_PATH + CUSIP_LIST + ".txt", sep = ' ', \
-           index = False, header = False)
+# Output the whole list to csv
+cusip_id_list.to_csv(cfg.DATA_PATH + CUSIP_LIST + ".csv", \
+                     index = False, header = True)
+
+# Break into smaller sub-dataframe due to TRACE 2GB limitation
+ids = cusip_id_list['cusip_id']
+ids_lists = np.array_split(ids, cfg.NUM_SUB_DF)
+for i in range(cfg.NUM_SUB_DF):
+    ids_lists[i].to_csv(cfg.DATA_PATH + CUSIP_LIST + str(i) + ".txt", sep = ' ', \
+                        index = False, header = False)
+
