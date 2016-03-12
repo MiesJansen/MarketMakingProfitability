@@ -6,6 +6,7 @@ Created on Wed Mar 09 15:19:34 2016
 """
 
 import pandas as pd
+import numpy as np
 
 import MMP_config as cfg
 
@@ -21,6 +22,9 @@ df = pd.read_csv(cfg.DATA_PATH + BOND_LIST + ".csv", \
 df['cusip_id'].astype(str)
 cusip_id_list = df['cusip_id'].unique().tolist()
 
-ids = pd.DataFrame(cusip_id_list)
+ids = pd.DataFrame(cusip_id_list, columns = ['cusip'])
+# Remove empty cusip ids
+ids = ids[ids['cusip'].notnull()]
+
 ids.to_csv(cfg.DATA_PATH + CUSIP_LIST + ".txt", sep = ' ', \
            index = False, header = False)
