@@ -27,4 +27,5 @@ if __name__ == "__main__":
         df2 = cln.clean_bond(df1, cfg.DATA_PATH)
         df_list.append(df2)
         
-    lpx.Calculate_First_Proxy(df_list)
+    df1 = lpx.Calculate_First_Proxy(df_list)
+    lpx.Plot_Liquidity(df1, 'residual_term')
