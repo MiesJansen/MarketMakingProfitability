@@ -9,7 +9,7 @@ OUTPUT_PATH = './data/output/'
 DATA_NAMES = ['List0', 'List1', 'List2', 'List3', 'List4']
 
 # Indicator of whether output individual clean bond data to .csv
-doOutput = True
+doOutput = False
 
 # Number of subsections dataframe (because TRACE encourage to keep data
 #  smaller than 2GB)
