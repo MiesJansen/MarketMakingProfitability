@@ -6,7 +6,7 @@ DATA_PATH = './data/'
 OUTPUT_PATH = './data/output/'
 
 # Name of the datafile
-DATA_NAME = 'List0'
+DATA_NAMES = ['List0', 'List1', 'List2', 'List3', 'List4']
 
 # Indicator of whether output individual clean bond data to .csv
 doOutput = True
