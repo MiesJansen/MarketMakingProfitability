@@ -210,6 +210,9 @@ def Tailor_Data(df):
                       'agu_qsr_id', 'spcl_trd_fl', 'trdg_mkt_cd', 'orig_msg_seq_nb']
     
     df = remove_cols(df, COLS_TO_REMOVE)
+    
+    # Remove entries that do not have yield data
+    df = df[df['yld_pt'] >= 0].reset_index(drop = True)
 
     return df
 
