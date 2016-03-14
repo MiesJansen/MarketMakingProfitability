@@ -138,10 +138,10 @@ def AgencyTransac(df):
     df_temp1 = df[rows_to_clean]
     
     # Identify and drop agency transactions
-    rows_buyAg = np.all([df_temp1['rpt_side_cd'] == 'B', \
-                         df_temp1['buy_cpcty_cd'] == 'A'], axis = 0)
-    rows_sellAg = np.all([df_temp1['rpt_side_cd'] == 'S', \
-                          df_temp1['sell_cpcty_cd'] == 'A'], axis = 0)
+    rows_buyAg = np.all([df_temp1['rpt_side_cd'].values == 'B', \
+                         df_temp1['buy_cpcty_cd'].values == 'A'], axis = 0)
+    rows_sellAg = np.all([df_temp1['rpt_side_cd'].values == 'S', \
+                          df_temp1['sell_cpcty_cd'].values == 'A'], axis = 0)
     df_temp2 = df_temp1[np.any([rows_buyAg, rows_sellAg], axis = 0)]
     
     df_temp3 = df.drop(df_temp2.index, axis = 0)
