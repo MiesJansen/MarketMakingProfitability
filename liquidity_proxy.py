@@ -6,48 +6,78 @@ import matplotlib
 import matplotlib.pyplot as plt
 import copy
 
+num_months_CONST = 49
+month_keys = {'32010' : 0, '42010': 1, '52010': 2, '62010': 3, '72010': 4, '82010': 5,
+              '92010': 6, '102010': 7, '112010': 8, '122010': 9, '12011': 10, '22011': 11,
+              '32011': 12, '42011' : 13, '52011': 14, '62011': 15, '72011': 16, '82011': 17,
+              '92011': 18, '102011': 19, '112011': 20, '122011': 21, '12012': 22, '22012': 23,
+              '32012': 24, '42012': 25, '52012': 26, '62012': 27, '72012': 28, '82012': 29,
+              '92012': 30, '102012': 31, '112012': 32, '122012': 33, '12013': 34, '22013': 35,
+              '32013': 36, '42013': 37, '52013': 38, '62013': 39, '72013': 40, '82013': 41,
+              '92013': 42, '102013': 43, '112013': 44, '122013': 45, '12014': 46, '22014': 47,
+              '32014': 48}
+
 def Calculate_First_Proxy(df_list):     
     for idx, df in enumerate(df_list):
         df_list[idx] = Add_Proxy_Columns(df) #apply func to each df in list of dfs
 
     date_arr = []
     date_arr_list = [[]]        #list of lists of bond dates per bond - same for all
-    liq_arr = []
+    liq_arr = [0] * num_months_CONST
     liq_arr_list = [[]]         #list of lists of liq coeff per bond
-    liq_month_pairs = [[]]
+    liq_per_month = [[]]
     first_pass = True
 
+    counter = 0
+    print 'df_list size: ', len(df_list)
     # Group dataframe on index by month and year
     for df in df_list: 
+        #print df['cusip_id'][0]
+        #if (df['cusip_id'][0] == '023650AH7' or df['cusip_id'][0] == '023650AG9'):
+        #   print df
         for date, df_group in df.groupby(pd.TimeGrouper("M")):
             #Run regression per month to get INITIAL liquidity factor
-            y,X = dmatrices('rptd_pr_1 ~ rptd_pr + volume_and_sign', 
-                            data=df_group, return_type='dataframe')
-            mod = sm.OLS(y,X)
-            res = mod.fit()
+            try:
+                y,X = dmatrices('rptd_pr_1 ~ rptd_pr + volume_and_sign', 
+                                data=df_group, return_type='dataframe')
+                #print date, X.shape
+                mod = sm.OLS(y,X)
+                res = mod.fit()
             
-            if first_pass:      #only need dates from one pass
-                date_arr.append(date)   #store date
-            liq_arr.append(res.params[2])   #res.params(2) = liquidity coefficient
+                if first_pass:      #only need dates from one pass
+                    date_arr.append(date)   #store date
+
+                month =  ''.join([str(date.month),str(date.year)])
+                month_key = month_keys[month]
+                #set specific months with liquidity factos | otherwise set to 0
+                liq_arr[month_key] = res.params[2]   #res.params(2) = liquidity coefficient
+            except ValueError:  #X has zero rows
+                if first_pass:      #only need dates from one pass
+                    date_arr.append(date)   #store date
+
+                liq_arr[month_key] = 0
 
         liq_arr_list.append(liq_arr)    #store all liq coeff for each month per bond
-        liq_arr = []
+        liq_arr = [0] * num_months_CONST     #clear liq_arr
         first_pass = False
 
     liq_arr_list.pop(0)     #pop empty df for first entry
 
-    #create list of lists of liquidity coefficients per month
-    num_months = len(date_arr)
-    for i in range(0, num_months):
-        liq_month_pairs.append([item[i] for item in liq_arr_list])
+    #print liq_arr_list
 
-    liq_month_pairs.pop(0)  #pop empty first entry
+    for i in range(0, num_months_CONST):
+        liq_per_month.append([item[i] for item in liq_arr_list])
 
-    #perform equation three to get average liquidity per month
-    num_bonds = len(df_list)
-    liq_month_list = list((((item[0] + item[1]) / num_bonds))
-                            for item in liq_month_pairs)
+    liq_per_month.pop(0)  #pop empty first entry
+    liq_per_month.pop(0)  #pop list of zeros
 
+    #perform equation (3) to get average liquidity per month
+    for item in liq_per_month:
+        num_bonds = sum([1 for x in item if x != 0]) #exclude no liquidity months in sum
+        liq_month_list = list(((sum(item) / num_bonds))
+                            for item in liq_per_month)
+
+    #print len(liq_month_list), '\n', len(date_arr), '\n', liq_month_list
     df = Run_Regression(liq_month_list, date_arr)
 
     return df
@@ -102,6 +132,8 @@ def Run_Regression(liq_month_list, date_arr):
 
     #calculate thre residual term --> FINAL liquidity term
     df['residual_term'] = df['liq_delta_1'] - df['liq_proxy_values']
+
+    df['residual_term'] = df['residual_term'] * 100
 
     return df
 
