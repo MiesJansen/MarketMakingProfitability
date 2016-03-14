@@ -25,7 +25,7 @@ if __name__ == "__main__":
         # dataframe holding all trades of ONE bond at a time
         df1 = df0.loc[df0['cusip_id'] == cusip_id]
 
-        df2 = cln.clean_bond(df1, cfg.DATA_PATH, cfg.doOutput)
+        df2 = cln.clean_bond(df1, cfg.OUTPUT_PATH, cfg.doOutput)
         df_list.append(df2)
         
     df1 = lpx.Calculate_First_Proxy(df_list)
