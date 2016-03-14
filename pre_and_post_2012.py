@@ -216,7 +216,7 @@ def Tailor_Data(df):
 
 ## ASSUMPTIONS: each input dataframe should have identical cusip_id, i.e.
 ##  representing a particular bond
-def clean_bond(df, data_dir):
+def clean_bond(df, data_dir, doOutput):
     # common pre-processing for all data
     df1 = Initial_deletes(df)
     
@@ -244,7 +244,7 @@ def clean_bond(df, data_dir):
     df5 = Tailor_Data(df4)
     
     # Output non-empty dataframs to csv
-    if (df5.shape[0] > 0):
+    if (df5.shape[0] > 0) and (doOutput is True):
         bond_name = df5.iloc[0]['cusip_id']
         df5.to_csv(data_dir + bond_name + "_clean.csv", index = False)
         
