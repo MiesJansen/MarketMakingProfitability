@@ -133,7 +133,8 @@ def AgencyTransac(df):
     #print "Cleaning agency transactions..."
     
     # Isolate transactions with customers, without commission
-    rows_to_clean = np.all([df['cntra_mp_id'] == 'C', df['cmsn_trd'] == 'N'], \
+    rows_to_clean = np.all([df['cntra_mp_id'].values == 'C', \
+							df['cmsn_trd'].values == 'N'], \
                            axis = 0)
     df_temp1 = df[rows_to_clean]
     
@@ -152,8 +153,8 @@ def AgencyTransac(df):
 def Final_Clean(df):
     #print "Cleaning inter-dealer transactions..."
     # Identify one of interdealer transactions, e.g. buy side, and remove it
-    rows_interdealer = np.all([df['cntra_mp_id'] == 'D', \
-                               df['rpt_side_cd'] == 'B'], axis = 0)
+    rows_interdealer = np.all([df['cntra_mp_id'].values == 'D', \
+                               df['rpt_side_cd'].values == 'B'], axis = 0)
     df_temp1 = df[~rows_interdealer]
     
     # Is there a need to label inter-dealer trades' report side to 'D'?
