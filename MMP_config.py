@@ -8,6 +8,10 @@ OUTPUT_PATH = './data/output/'
 # Name of the datafile
 DATA_NAMES = ['List0', 'List1', 'List2', 'List3', 'List4']
 
+# Start and end day of data
+dt_start = '20100401'
+dt_end = '20140331'
+
 # Indicator of whether output individual clean bond data to .csv
 doOutput = False
 
