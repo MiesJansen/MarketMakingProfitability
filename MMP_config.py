@@ -5,8 +5,12 @@
 DATA_PATH = './data/'
 OUTPUT_PATH = './data/output/'
 
+# Whether to process raw data or read existing clean data directly
+readRaw = False
+
 # Name of the datafile
-DATA_NAMES = ['List0', 'List1', 'List2', 'List3', 'List4']
+RAW_DATA_NAMES = ['List0', 'List1', 'List2', 'List3', 'List4']
+CLEAN_DATA_FILE = 'list_clean'
 
 # Start and end day of data
 dt_start = '20100401'
