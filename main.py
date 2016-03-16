@@ -3,6 +3,7 @@ import pandas as pd
 import pre_and_post_2012 as cln
 import liquidity_proxy as lpx
 import MMP_config as cfg
+import Aggregate_Daily as ad
 
 ## TO-DO: Reporting stats to a log file
 
@@ -51,6 +52,8 @@ if __name__ == "__main__":
         cusip_iter = df1.groupby('cusip_id', sort = False)        
         for name, cusip_group in cusip_iter:
             df_list.append(cusip_group)
+
+        df_list = ad.Group_Daily(df_list)
     
     # Calculate proxy liquidity measure 
     df1 = lpx.Calculate_First_Proxy(df_list)

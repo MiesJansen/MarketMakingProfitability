@@ -16,12 +16,13 @@ num_months_CONST = len(month_keys)
 
 def Calculate_First_Proxy(orig_df_list):
     df_list = []
+    
     for df in orig_df_list:
+        #df.reset_index(inplace = True)
         df = Add_Proxy_Columns(df)
         if df.shape[0] > 0:
             #apply func to each df in list of dfs, append to list if not 0 length
             df_list.append(Add_Proxy_Columns(df))
-
 
     #list of lists of liq coeff per bond
     liq_arr_list = []         
@@ -55,6 +56,7 @@ def Calculate_First_Proxy(orig_df_list):
 
     #print liq_arr_list
     
+    #separate liquidity per bond into monthly liquidity over all bonds
     for i in range(num_months_CONST):
         liq_per_month.append([item[i] for item in liq_arr_list])
 
@@ -82,9 +84,8 @@ def Add_Proxy_Columns(df):
     # Remove the last row, because it does not contain delta
     df = df.drop(df.index[-1], inplace = False)
 
-    # -1 if (-) and +1 for blanks
-    df['volume_and_sign'] = np.where(df['yld_sign_cd'] == '-', -1, 1)
-    df['volume_and_sign'] = df['volume_and_sign'] * df['entrd_vol_qt']
+    # -1 if (-) and +1 for blanks --> from formula (2)
+    df['volume_and_sign'] = df['yld_sign_cd'] * df['entrd_vol_qt']
 
     # convert int64 date series to DateTime series
     df['trd_exctn_dt_idx'] = pd.to_datetime(df['trd_exctn_dt'], format='%Y%m%d')
