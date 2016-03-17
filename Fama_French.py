@@ -51,27 +51,15 @@ def FamaFrenchReg(df_list, df_liq):
     #---------------------------------------------
     df_yld_list = []
     for df in df_list:
-	yld_last = None    # last yield figure of last month
 	df_list_monthly = []
 	for date, df_group in df.groupby(pd.TimeGrouper("M")):
 	    df_month = pd.DataFrame(df_group)
 	    if df_month.empty:
 		continue
 	    
-	    # Last yield of the month - last yield of last month
+	    # Take END OF THE MONTH yield as monthly yield, other possible
+	    #  monthly yield is AVERAGE, or BEGINNING OF THE MONTH
 	    df_month_yld = df_month.tail(1)
-	    yld_curr = df_month_yld.get_value(df_month_yld.index[0], 'yld_pt')
-	    # For first month (yld_lst is None), last month yield is the first
-	    #  yield of the month
-	    if yld_last is None:
-		yld_last = df_month.get_value(df_month.index[0], 'yld_pt')
-		
-	    # Calculate month yield
-	    df_month_yld.loc[df_month_yld.index[0], 'yld_pt'] = \
-	        (yld_curr - yld_last) / yld_last
-	    # Update last yield of last month
-	    yld_last = yld_curr
-	    
 	    df_list_monthly.append(df_month_yld)
 	
 	# Combine monthly data with Fama French parameters,
@@ -104,4 +92,3 @@ def FamaFrenchReg(df_list, df_liq):
     df_Beta = pd.DataFrame(df_list_Beta, columns = headers)
     df_Beta.to_csv(cfg.DATA_PATH + cfg.CLEAN_DATA_FILE + "_Betas.csv",
                    index = False)
-	
