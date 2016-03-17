@@ -8,30 +8,14 @@ import MMP_config as cfg
 def FamaFrenchReg(df_list, df_liq):
     # Calculate market parameters needed by Fama French Model
     #----------------------------------------------
-    # Basic parameters for Fama French 3-factor model
+    # Include:
+    #  1. Basic parameters for Fama French 3-factor model
+    #  2. DEF and TERM (calculated in Excel by investment bond portfolio yield,
+    #      10-year government bond yield, and 1 month T-bill yield
+    columns = ['Date', 'MKT', 'SMB', 'HML', 'DEF', 'TERM', 'RF']
     df_ff_params = pd.read_csv(cfg.DATA_PATH + cfg.FF_DATA_FILE + ".csv",\
-                               index_col = False, low_memory = False) # To silent warnings
-
-    # Add Investment grade corporate bond return
-    df_IGbond = pd.read_csv(cfg.DATA_PATH + "IGBonds.csv",\
-                            index_col = False, low_memory = False) # To silent warnings 
-    df_ff_params = pd.merge(left = df_ff_params, right = df_IGbond,
-                            on = ['Date'], how = 'inner')
-    
-    # Add long-term government bond return
-    df_Gbond10 = pd.read_csv(cfg.DATA_PATH + "10year_Gbond.csv",\
-                             index_col = False, low_memory = False) # To silent warnings 
-    df_ff_params = pd.merge(left = df_ff_params, right = df_Gbond10,
-                            on = ['Date'], how = 'inner')
-    
-    # Add 1-month Treasury bill return
-    df_Tbill = pd.read_csv(cfg.DATA_PATH + "1month_Tbill.csv",\
-                           index_col = False, low_memory = False) # To silent warnings 
-    df_ff_params = pd.merge(left = df_ff_params, right = df_Tbill,
-                            on = ['Date'], how = 'inner')
-    
-    df_ff_params['DEF'] = df_ff_params['IGBonds'] - df_ff_params['Gbond']
-    df_ff_params['TERM'] = df_ff_params['Gbond'] - df_ff_params['Tbill']
+                               usecols = columns, index_col = False,
+                               low_memory = False) # To silent warnings
     
     df_ff_params['Date'] = df_ff_params['Date'].apply(str)
     
@@ -44,8 +28,7 @@ def FamaFrenchReg(df_list, df_liq):
                             on = ['Date'], how = 'inner')
     
     # Reformat
-    df_ff_params = df_ff_params.rename(columns={'Mkt-RF': 'MKT',\
-                                                'residual_term': 'L'})
+    df_ff_params = df_ff_params.rename(columns={'residual_term': 'L'})
     
     # Aggregate monthly yield for each bond
     #---------------------------------------------
