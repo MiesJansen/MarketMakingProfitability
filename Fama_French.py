@@ -102,6 +102,6 @@ def FamaFrenchReg(df_list, df_liq):
 	df_list_Beta.append(beta_list)
 	
     df_Beta = pd.DataFrame(df_list_Beta, columns = headers)
-    df_Beta.to_csv(cfg.DATA_PATH, cfg.CLEAN_DATA_FILE, "_Betas.csv",
+    df_Beta.to_csv(cfg.DATA_PATH + cfg.CLEAN_DATA_FILE + "_Betas.csv",
                    index = False)
 	
