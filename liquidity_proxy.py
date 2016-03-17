@@ -42,7 +42,7 @@ def Calculate_First_Proxy(orig_df_list):
             # When there are some data in current month,
             if df_group.shape[0] > 0:
                 #Run regression per month to get INITIAL liquidity factor
-                y,X = dmatrices('rptd_pr_1 ~ rptd_pr + volume_and_sign', 
+                y,X = dmatrices('yld_pt_1 ~ yld_pt + volume_and_sign', 
                                 data=df_group, return_type='dataframe')
                 #print date, X.shape
                 mod = sm.OLS(y,X)
@@ -78,7 +78,6 @@ def Add_Proxy_Columns(df):
     #price = rptd_pr | yield = yld_pt | volume = entrd_vol_qt
     #yield sign = yld_sign_cd | date = trd_exctn_dt
 
-    df['rptd_pr_1'] = df['rptd_pr'].shift(-1)
     df['yld_pt_1'] = df['yld_pt'].shift(-1)
 
     # Remove the last row, because it does not contain delta

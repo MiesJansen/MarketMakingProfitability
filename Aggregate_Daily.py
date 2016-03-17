@@ -41,8 +41,8 @@ def Group_Daily(orig_df_list):
 			df_new = df.tail(1)
 
 			#assign values to already existing columns
-			df.loc[date,'entrd_vol_qt'] = volume_sum
-			df.loc[date,'yld_pt'] = yield_mean
+			df_new.loc[date,'entrd_vol_qt'] = volume_sum
+			df_new.loc[date,'yld_pt'] = yield_mean
 
 			df_day_list.append(df_new)
 

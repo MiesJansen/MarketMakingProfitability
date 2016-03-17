@@ -4,6 +4,7 @@ import pre_and_post_2012 as cln
 import liquidity_proxy as lpx
 import MMP_config as cfg
 import Aggregate_Daily as ad
+import Fama_French as ff
 
 ## TO-DO: Reporting stats to a log file
 
@@ -52,11 +53,24 @@ if __name__ == "__main__":
         cusip_iter = df1.groupby('cusip_id', sort = False)        
         for name, cusip_group in cusip_iter:
             df_list.append(cusip_group)
-
-        df_list = ad.Group_Daily(df_list)
+            
+    # Temparory delete columns, later will put into clean code
+    ## FIX: ADD these to cleaning algorithm
+    df_list_new = []
+    col_names = ['cusip_id', 'trd_exctn_dt', 'entrd_vol_qt', 'yld_sign_cd', 'yld_pt']
+    for df in df_list:
+        df = df.loc[:, col_names]
+        df_list_new.append(df)
+    
+    # Aggregate data into daily summary
+    df_list_daily = ad.Group_Daily(df_list_new)
+    
+    # Output the daily summary
+    daily_df = pd.concat(df_list_daily, ignore_index = False)
+    daily_df.to_csv(cfg.DATA_PATH + cfg.CLEAN_DATA_FILE + "_daily.csv",\
+                    index = True)
     
     # Calculate proxy liquidity measure 
-    df1 = lpx.Calculate_First_Proxy(df_list)
+    df1 = lpx.Calculate_First_Proxy(df_list_daily)
     # Plot the liquidity measure
     lpx.Plot_Liquidity(df1, 'residual_term')
-    
