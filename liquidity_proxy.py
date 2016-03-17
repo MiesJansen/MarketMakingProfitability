@@ -2,17 +2,17 @@ import pandas as pd
 import numpy as np
 import statsmodels.api as sm
 from patsy import dmatrices
-import matplotlib
 import matplotlib.pyplot as plt
-import copy
 
 import MMP_config as cfg
 
 # month name string -> integer index mapping
 month_list = pd.date_range(cfg.dt_start, cfg.dt_end, freq = 'M')
+num_months_CONST = len(month_list)
+
 month_keys = dict(zip((''.join([str(dt.month), str(dt.year)]) for dt in month_list),\
-                      range(48)))
-num_months_CONST = len(month_keys)
+                      range(num_months_CONST)))
+
 
 def Calculate_First_Proxy(orig_df_list):
     df_list = []
@@ -28,7 +28,7 @@ def Calculate_First_Proxy(orig_df_list):
     liq_arr_list = []         
     liq_per_month = []
 
-    print 'df_list size: ', len(df_list)
+    #print 'df_list size: ', len(df_list)
     for df in df_list:
         # A temporary array for holding liquidity beta for each month
         liq_arr = [np.nan] * num_months_CONST
@@ -84,6 +84,7 @@ def Add_Proxy_Columns(df):
     df = df.drop(df.index[-1], inplace = False)
 
     # -1 if (-) and +1 for blanks --> from formula (2)
+    ## FIX: should be vol * sign of (EXCESS YIELD)
     df['volume_and_sign'] = df['yld_sign_cd'] * df['entrd_vol_qt']
 
     # convert int64 date series to DateTime series

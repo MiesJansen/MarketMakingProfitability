@@ -55,6 +55,10 @@ def FamaFrenchReg(df_list, df_liq):
 	                        how = 'inner')
 	df_yld_list.append(df_month_yld)
 
+    ## FIX normalize data before running regression!!!
+    ## Keep in mind the method needed to be documented, because the same
+    ##   normalization needed for calculating excess yield with the model
+    
     #run linear regression using equation (9) from pdf for each bond
     #-----------------------------------------------------
     df_list_Beta = []

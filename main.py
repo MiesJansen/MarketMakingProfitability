@@ -64,6 +64,7 @@ if __name__ == "__main__":
             df = df.loc[:, col_names]
             df_list_new.append(df)
         
+        print "Aggregating data into daily summary..."
         # Aggregate data into daily summary
         df_list_daily = ad.Group_Daily(df_list_new)
         
@@ -99,7 +100,8 @@ if __name__ == "__main__":
     df_liq_ff = df1.loc[:, 'residual_term']
     
     # Plot the liquidity measure
-    #lpx.Plot_Liquidity(df1, 'residual_term')
+    lpx.Plot_Liquidity(df1, 'residual_term')
     
+    print "Running Fama French regression..."
     ff.FamaFrenchReg(df_list_ff, df_liq_ff)
     
