@@ -27,6 +27,8 @@ doOutput = False    # Whether output individual clean bond data to .csv
 dt_start = '20100401'
 dt_end = '20140331'
 
+BOND_IDX_FILE = 'BofA_Corporate_Bond_Index'
+
 # Fama French data
 #-----------------------------------------------
 FF_DATA_FILE = 'FF_monthly_data'

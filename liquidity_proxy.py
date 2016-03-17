@@ -16,7 +16,8 @@ month_keys = dict(zip((''.join([str(dt.month), str(dt.year)]) for dt in month_li
 
 def Calculate_First_Proxy(orig_df_list):
     df_list = []
-    df_index_values = pd.read_csv('./data/BofA_Corporate_Bond_Index.csv')
+    # import corporate bond yield index 
+    df_index_values = pd.read_csv(cfg.DATA_PATH + cfg.BOND_IDX_FILE + '.csv')
     
     for df in orig_df_list:
         if df.shape[0] > 0:
