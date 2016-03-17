@@ -29,12 +29,9 @@ def Group_Daily(df_list):
 		df['yld_pt'] = df['yld_sign_cd'] * df['yld_pt']
 
 		# For each day, sum all volumnes, take the END OF DAY yield
-		## FIX yield sign is temporarily needed until the excess yield
-		##      is implemented in proxy
 		df_daily = df.resample('D', how={'cusip_id': 'last',\
 		                                 'trd_exctn_dt': 'last',\
 		                                 'entrd_vol_qt': np.sum,\
-		                                 'yld_sign_cd': 'last',
 		                                 'yld_pt': 'last'}, label='left')
 		df_daily = df_daily.dropna(how = 'any', inplace = False)
 

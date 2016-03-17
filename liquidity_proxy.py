@@ -16,13 +16,12 @@ month_keys = dict(zip((''.join([str(dt.month), str(dt.year)]) for dt in month_li
 
 def Calculate_First_Proxy(orig_df_list):
     df_list = []
+    df_index_values = pd.read_csv('./data/BofA_Corporate_Bond_Index.csv')
     
     for df in orig_df_list:
-        #df.reset_index(inplace = True)
-        df = Add_Proxy_Columns(df)
         if df.shape[0] > 0:
             #apply func to each df in list of dfs, append to list if not 0 length
-            df_list.append(Add_Proxy_Columns(df))
+            df_list.append(Calculate_Excess_Return(df, df_index_values))
 
     #list of lists of liq coeff per bond
     liq_arr_list = []         
@@ -42,7 +41,7 @@ def Calculate_First_Proxy(orig_df_list):
             # When there are some data in current month,
             if df_group.shape[0] > 0:
                 #Run regression per month to get INITIAL liquidity factor
-                y,X = dmatrices('yld_pt_1 ~ yld_pt + volume_and_sign', 
+                y,X = dmatrices('excess_return_1 ~ yld_pt + volume_and_sign', 
                                 data=df_group, return_type='dataframe')
                 #print date, X.shape
                 mod = sm.OLS(y,X)
@@ -72,26 +71,28 @@ def Calculate_First_Proxy(orig_df_list):
 
     return df
 
-def Add_Proxy_Columns(df):
-    ##FIX: There are some "SettingWithCopyWarning" here, might be caused by
-    ##      false positive of pandas new release.
-    #price = rptd_pr | yield = yld_pt | volume = entrd_vol_qt
-    #yield sign = yld_sign_cd | date = trd_exctn_dt
+def Calculate_Excess_Return(df, df_index_values):
+    # format corporate bond INDEX date
+    df_index_values['date'] = pd.to_datetime(df_index_values['date'], 
+                                             format="%m/%d/%Y")
+    df_index_values['date_1'] = df_index_values['date']
+    df_index_values = df_index_values.set_index(
+                    pd.DatetimeIndex(df_index_values['date']))
 
-    df['yld_pt_1'] = df['yld_pt'].shift(-1)
+    df['trd_exctn_dt_idx_1'] = df.index
 
-    # Remove the last row, because it does not contain delta
-    df = df.drop(df.index[-1], inplace = False)
+    #difference between individual bond percentage yield & corporate bond index % yield
+    df = pd.merge(df, df_index_values, how='inner', left_on='trd_exctn_dt_idx_1', 
+      right_on='date_1', left_index=True, suffixes=('_x', '_y'))
 
-    # -1 if (-) and +1 for blanks --> from formula (2)
-    ## FIX: should be vol * sign of (EXCESS YIELD)
-    df['volume_and_sign'] = df['yld_sign_cd'] * df['entrd_vol_qt']
+    #difference between individual bond percentage yield & corporate bond index % yield
+    df['excess_return'] = df['yld_pt'] - df['yield']
+    #excess return for r_e_j+1
+    df['excess_return_1'] = df['excess_return'].shift(1)
+    df = df.drop(df.index[0], inplace = False)
+    df['excess_return_sign'] = np.where(df['excess_return'] >= 0, 1, -1)
+    df['volume_and_sign'] = df['excess_return_sign'] * df['entrd_vol_qt']
 
-    # convert int64 date series to DateTime series
-    df['trd_exctn_dt_idx'] = pd.to_datetime(df['trd_exctn_dt'], format='%Y%m%d')
-    # set DateTime series as index od dataframe
-    df = df.set_index('trd_exctn_dt_idx')
-    
     return df
 
 def Run_Regression(liq_month_list):
