@@ -57,7 +57,7 @@ def Filter_Columns(orig_df_list):
 	for df in orig_df_list:
 		df['trd_exctn_dt_idx'] = pd.to_datetime(df['trd_exctn_dt'], format='%Y%m%d')
 		# set DateTime series as index od dataframe for regression above
-		df = df.set_index(pd.DatetimeIndex(df['trd_exctn_dt_idx']))
+		df = df.set_index('trd_exctn_dt_idx')
 
 		df['yld_sign_cd'] = np.where(df['yld_sign_cd'] == '-', -1, 1)
    		df['yld_pt'] = df['yld_sign_cd'] * df['yld_pt']
