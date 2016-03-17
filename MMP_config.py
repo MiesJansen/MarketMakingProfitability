@@ -10,13 +10,12 @@ OUTPUT_PATH = './data/output/'
 # Whether to process raw data or read existing clean data directly
 readRaw = False
 
-# Only use when readRaw = False
-doOutput = False    # Whether output individual clean bond data to .csv
 CLEAN_DATA_FILE = 'list_clean'
 
 # Only use when readRaw = True
 # Name of the datafile
 RAW_DATA_NAMES = ['List0', 'List1', 'List2', 'List3', 'List4']
+doOutput = False    # Whether output individual clean bond data to .csv
 
 # Calculating proxies
 #-----------------------------------------------
