@@ -94,8 +94,11 @@ if __name__ == "__main__":
         df = df.loc[:, col_names]
         df_list_ff.append(df)
     
-    # Calculate proxy liquidity measure 
+    # Calculate proxy liquidity measure, and output to a data file
     df1 = lpx.Calculate_First_Proxy(df_list_daily)
+    df1.to_csv(cfg.DATA_PATH + cfg.CLEAN_DATA_FILE + "_liquidity.csv",\
+               index = True)
+    
     # Prepare liquidity measure for Fama French regression
     df_liq_ff = df1.loc[:, 'residual_term']
     
