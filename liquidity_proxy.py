@@ -25,11 +25,14 @@ def Calculate_First_Proxy(orig_df_list):
             df_list.append(Calculate_Excess_Return(df, df_index_values))
 
     #list of lists of liq coeff per bond
-    liq_arr_list = []         
+    liq_arr_list = []
     liq_per_month = []
 
     #print 'df_list size: ', len(df_list)
     for df in df_list:
+        if df.empty:
+            continue
+        
         # A temporary array for holding liquidity beta for each month
         liq_arr = [np.nan] * num_months_CONST
         #print df['cusip_id'][0]
@@ -132,4 +135,8 @@ def Run_Regression(liq_month_list):
 def Plot_Liquidity(df, col_name):
     # plot liquidity vs date for each individual bond
     plt.plot(df.index.values, df[col_name])   #possibly df.index.tolist()????
-    plt.show()
+    plt.ylabel('Liquidity L_t')
+    plt.title('Pastor-Stambaugh liquidity measure')
+    
+    plt.savefig(cfg.DATA_PATH + cfg.CLEAN_DATA_FILE + '_liquidity.png')
+    
