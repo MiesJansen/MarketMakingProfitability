@@ -89,13 +89,15 @@ def Calculate_Excess_Return(df, df_index_values):
     df = pd.merge(df, df_index_values, how='inner', left_on='trd_exctn_dt_idx_1', 
       right_on='date_1', left_index=True, suffixes=('_x', '_y'))
 
-    #difference between individual bond percentage yield & corporate bond index % yield
-    df['excess_return'] = df['yld_pt'] - df['yield']
-    #excess return for r_e_j+1
-    df['excess_return_1'] = df['excess_return'].shift(1)
-    df = df.drop(df.index[0], inplace = False)
-    df['excess_return_sign'] = np.where(df['excess_return'] >= 0, 1, -1)
-    df['volume_and_sign'] = df['excess_return_sign'] * df['entrd_vol_qt']
+    if df.shape[0] > 0:
+        #difference between individual bond percentage yield & corporate bond index % yield
+        df['excess_return'] = df['yld_pt'] - df['yield']
+        #excess return for r_e_j+1
+        df['excess_return_1'] = df['excess_return'].shift(1)
+        
+        df = df.drop(df.index[0], inplace = False)
+        df['excess_return_sign'] = np.where(df['excess_return'] >= 0, 1, -1)
+        df['volume_and_sign'] = df['excess_return_sign'] * df['entrd_vol_qt']
 
     return df
 

@@ -53,7 +53,8 @@ def FamaFrenchReg(df_list, df_liq):
 	df_month_yld = pd.merge(left = df_month_yld, right = df_ff_params,
 	                        left_on = ['trd_exctn_dt'], right_on = ['Date'],
 	                        how = 'inner')
-	df_yld_list.append(df_month_yld)
+	if df_month_yld.shape[0] > 0:
+	    df_yld_list.append(df_month_yld)
 
     ## FIX normalize data before running regression!!!
     ## Keep in mind the method needed to be documented, because the same
