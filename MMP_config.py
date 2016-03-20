@@ -14,11 +14,11 @@ readDaily = True
 # Whether to process raw data or read existing clean data directly
 readRaw = False
 
-CLEAN_DATA_FILE = 'list_clean_temp_raw'
+CLEAN_DATA_FILE = 'list_clean_List0List1'
 
 # Only use when readRaw = True
 # Name of the datafile
-RAW_DATA_NAMES = ['List0', 'List1', 'List2', 'List3', 'List4']
+RAW_DATA_NAMES = ['List0', 'List1']
 doOutput = False    # Whether output individual clean bond data to .csv
 
 # Calculating proxies
@@ -37,4 +37,4 @@ FF_DATA_FILE = 'FF_monthly_data'
 #------------------------------------------------
 # Number of subsections dataframe (because TRACE encourage to keep data
 #  smaller than 2GB)
-NUM_SUB_DF = 5
+NUM_SUB_DF = 2
