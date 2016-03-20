@@ -5,6 +5,7 @@ from patsy import dmatrices
 import matplotlib.pyplot as plt
 
 import MMP_config as cfg
+import Display_Graphs as dg
 
 # month name string -> integer index mapping
 month_list = pd.date_range(cfg.dt_start, cfg.dt_end, freq = 'M')
@@ -58,6 +59,7 @@ def Calculate_First_Proxy(orig_df_list):
         liq_arr_list.append(liq_arr)    #store all liq coeff for each month per bond
 
     #print liq_arr_list
+    num_bond_list = []
     
     #separate liquidity per bond into monthly liquidity over all bonds
     for i in range(num_months_CONST):
@@ -69,6 +71,10 @@ def Calculate_First_Proxy(orig_df_list):
         num_bonds = sum([1 for x in item if not np.isnan(x)]) 
         liq_month_list = list(((np.nansum(item) / num_bonds))
                               for item in liq_per_month)
+        num_bond_list.append(num_bonds)
+
+    # Graph and output to a file the total volume per month 
+    dg.Monthly_Total_Bond_Graph(month_list, num_bond_list)
 
     #print len(liq_month_list), '\n', liq_month_list
     df = Run_Regression(liq_month_list)
@@ -141,4 +147,4 @@ def Plot_Liquidity(df, col_name):
     plt.title('Pastor-Stambaugh liquidity measure')
     
     plt.savefig(cfg.DATA_PATH + cfg.CLEAN_DATA_FILE + '_liquidity.png')
-    
+    plt.close()
