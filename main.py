@@ -5,6 +5,9 @@ import liquidity_proxy as lpx
 import MMP_config as cfg
 import Aggregate_Daily as ad
 import Fama_French as ff
+import matplotlib.pyplot as plt
+import numpy as np
+import Display_Graphs as dg
 
 ## TO-DO: main function becomes very cumbersome, need cleanup
 ## TO-DO: Reporting stats to a log file
@@ -83,19 +86,33 @@ if __name__ == "__main__":
         # Split data file by cusip_id, and create a list of dataframes
         cusip_iter = df_daily.groupby('cusip_id', sort = False)
         for name, cusip_group in cusip_iter:
-            cusip_group.index = pd.to_datetime(cusip_group['trd_exctn_dt_idx'],\
-                                               format = '%Y-%m-%d')
+            try:
+                cusip_group.index = pd.to_datetime(cusip_group['trd_exctn_dt_idx'],\
+                                                   format = '%Y-%m-%d')
+            except Exception:
+                cusip_group.index = pd.to_datetime(cusip_group['trd_exctn_dt_idx'],\
+                                                   format = '%m/%d/%Y')
             df_list_daily.append(cusip_group)
+
+    # Remove outlier bonds
+    # YTM range = [-4.0, 7.5]
+    df_list_daily_clean = []
+    for df in df_list_daily:
+        if ((df['yld_pt'].max() <= 6.0) & (df['yld_pt'].min() >= -4.0)):
+            df_list_daily_clean.append(df)
+
+    # Graph and output to a file the total volume per month 
+    dg.Monthly_Volume_Graph(df_list_daily_clean)
 
     # Isolate columns for Fama French Regression
     df_list_ff = []
     col_names = ['trd_exctn_dt', 'cusip_id', 'yld_pt']
-    for df in df_list_daily:
+    for df in df_list_daily_clean:
         df = df.loc[:, col_names]
         df_list_ff.append(df)
     
     # Calculate proxy liquidity measure, and output to a data file
-    df1 = lpx.Calculate_First_Proxy(df_list_daily)
+    df1 = lpx.Calculate_First_Proxy(df_list_daily_clean)
     df1.to_csv(cfg.DATA_PATH + cfg.CLEAN_DATA_FILE + "_liquidity.csv",\
                index = True)
     
@@ -107,4 +124,3 @@ if __name__ == "__main__":
     
     print "Running Fama French regression..."
     ff.FamaFrenchReg(df_list_ff, df_liq_ff)
-    
