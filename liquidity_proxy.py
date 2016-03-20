@@ -93,15 +93,15 @@ def Calculate_Excess_Return(df, df_index_values):
 
     #difference between individual bond percentage yield & corporate bond index % yield
     df = pd.merge(df, df_index_values, how='inner', left_on='trd_exctn_dt_idx_1', 
-      right_on='date_1', left_index=True, suffixes=('_x', '_y'))
+                  right_on='date_1', left_index=True, suffixes=('_x', '_y'))
 
     if df.shape[0] > 0:
         #difference between individual bond percentage yield & corporate bond index % yield
         df['excess_return'] = df['yld_pt'] - df['yield']
         #excess return for r_e_j+1
-        df['excess_return_1'] = df['excess_return'].shift(1)
+        df['excess_return_1'] = df['excess_return'].shift(-1)
+        df = df.drop(df.index[-1], inplace = False)
         
-        df = df.drop(df.index[0], inplace = False)
         df['excess_return_sign'] = np.where(df['excess_return'] >= 0, 1, -1)
         df['volume_and_sign'] = df['excess_return_sign'] * df['entrd_vol_qt']
 
@@ -122,7 +122,7 @@ def Run_Regression(liq_month_list):
 
     #run linear regression using equation (2) from pdf 
     y,X = dmatrices('liq_delta_1 ~ liq_delta', 
-        data=df, return_type='dataframe')
+                    data=df, return_type='dataframe')
     mod = sm.OLS(y,X)
     res = mod.fit()
     
@@ -131,7 +131,7 @@ def Run_Regression(liq_month_list):
                               for item in df['liq_delta']]
 
     #set first liquidity proxy value to intercept of regression equation
-    df['liq_proxy_values'][0] = res.params[0]
+    #df['liq_proxy_values'][0] = res.params[0]
 
     #calculate thre residual term --> FINAL liquidity term
     df['residual_term'] = df['liq_delta_1'] - df['liq_proxy_values']
@@ -148,3 +148,4 @@ def Plot_Liquidity(df, col_name):
     
     plt.savefig(cfg.DATA_PATH + cfg.CLEAN_DATA_FILE + '_liquidity.png')
     plt.close()
+    

@@ -1,7 +1,5 @@
 import pandas as pd
 import numpy as np
-import statsmodels.api as sm
-from patsy import dmatrices
 import matplotlib.pyplot as plt
 
 import MMP_config as cfg
@@ -25,7 +23,7 @@ def Monthly_Volume_Graph(df_list_daily):
             if df_group.shape[0] > 0:
                 vol_arr[month_key] = vol_arr[month_key] + df_group['entrd_vol_qt'].sum()
 
-    plt.plot(month_list, vol_arr)  
+    plt.plot(month_list, vol_arr)
     plt.ylabel('Volume')
     plt.title('Volume Per Month')
     plt.savefig(cfg.DATA_PATH + cfg.CLEAN_DATA_FILE + '_monthly_volume.png')
@@ -35,15 +33,12 @@ def Monthly_Volume_Graph(df_list_daily):
     df.to_csv(cfg.DATA_PATH + cfg.CLEAN_DATA_FILE + '_monthly_volume.csv')
 
 def Monthly_Total_Bond_Graph(month_list, num_bond_list):
-    plt.plot(month_list, num_bond_list)  
+    plt.plot(month_list, num_bond_list)
     plt.ylabel('Number of bonds')
     plt.title('Number of Bonds Per Month')
     plt.savefig(cfg.DATA_PATH + cfg.CLEAN_DATA_FILE + '_monthly_total_bonds.png')
     plt.close()
 
     df = pd.DataFrame({'Date': month_list, 'total Bonds': num_bond_list})
-    df.to_csv(cfg.DATA_PATH + cfg.CLEAN_DATA_FILE + '_monthly_volume.csv')
-
-
-
-
+    df.to_csv(cfg.DATA_PATH + cfg.CLEAN_DATA_FILE + '_monthly_total_bonds.csv')
+    

@@ -94,11 +94,13 @@ if __name__ == "__main__":
                                                    format = '%m/%d/%Y')
             df_list_daily.append(cusip_group)
 
+    ## FIX workaround for not having bond characteristic data to filter out
+    ##  special bonds
     # Remove outlier bonds
     # YTM range = [-4.0, 7.5]
     df_list_daily_clean = []
     for df in df_list_daily:
-        if ((df['yld_pt'].max() <= 6.0) & (df['yld_pt'].min() >= -4.0)):
+        if (df['yld_pt'].max() <= 6.0) and (df['yld_pt'].min() >= -4.0):
             df_list_daily_clean.append(df)
 
     # Graph and output to a file the total volume per month 
@@ -124,3 +126,4 @@ if __name__ == "__main__":
     
     print "Running Fama French regression..."
     ff.FamaFrenchReg(df_list_ff, df_liq_ff)
+    
