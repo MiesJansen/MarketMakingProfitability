@@ -25,40 +25,10 @@ def Calculate_First_Proxy(orig_df_list):
             #apply func to each df in list of dfs, append to list if not 0 length
             df_list.append(Calculate_Excess_Return(df, df_index_values))
 
-    #list of lists of liq coeff per bond
-    liq_arr_list = []
+    #Calculate liquidity coefficients for equation (2)
+    liq_arr_list = Calculate_Liquidity_Coeff(df_list)
+
     liq_per_month = []
-
-    #print 'df_list size: ', len(df_list)
-    for df in df_list:
-        if df.empty:
-            continue
-        
-        # A temporary array for holding liquidity beta for each month
-        liq_arr = [np.nan] * num_months_CONST
-        #print df['cusip_id'][0]
-        
-        # Group dataframe on index by month
-        for date, df_group in df.groupby(pd.TimeGrouper("M")):
-            month = ''.join([str(date.month),str(date.year)])
-            month_key = month_keys[month]
-
-            # When there are some data in current month,
-            if df_group.shape[0] > 0:
-                #Run regression per month to get INITIAL liquidity factor
-                y,X = dmatrices('excess_return_1 ~ yld_pt + volume_and_sign', 
-                                data=df_group, return_type='dataframe')
-                #print date, X.shape
-                mod = sm.OLS(y,X)
-                res = mod.fit()
-
-                #set specific months with liquidity factors
-                #res.params(2) = liquidity coefficient
-                liq_arr[month_key] = res.params[2]
-
-        liq_arr_list.append(liq_arr)    #store all liq coeff for each month per bond
-
-    #print liq_arr_list
     num_bond_list = []
     
     #separate liquidity per bond into monthly liquidity over all bonds
@@ -106,6 +76,41 @@ def Calculate_Excess_Return(df, df_index_values):
         df['volume_and_sign'] = df['excess_return_sign'] * df['entrd_vol_qt']
 
     return df
+
+def Calculate_Liquidity_Coeff(df_list):
+    #list of lists of liq coeff per bond
+    liq_arr_list = []
+
+    #print 'df_list size: ', len(df_list)
+    for df in df_list:
+        if df.empty:
+            continue
+        
+        # A temporary array for holding liquidity beta for each month
+        liq_arr = [np.nan] * num_months_CONST
+        #print df['cusip_id'][0]
+        
+        # Group dataframe on index by month
+        for date, df_group in df.groupby(pd.TimeGrouper("M")):
+            month = ''.join([str(date.month),str(date.year)])
+            month_key = month_keys[month]
+
+            # When there are some data in current month,
+            if df_group.shape[0] > 0:
+                #Run regression per month to get INITIAL liquidity factor
+                y,X = dmatrices('excess_return_1 ~ yld_pt + volume_and_sign', 
+                                data=df_group, return_type='dataframe')
+                #print date, X.shape
+                mod = sm.OLS(y,X)
+                res = mod.fit()
+
+                #set specific months with liquidity factors
+                #res.params(2) = liquidity coefficient
+                liq_arr[month_key] = res.params[2]
+
+        liq_arr_list.append(liq_arr)    #store all liq coeff for each month per bond
+
+    return liq_arr_list
 
 def Run_Regression(liq_month_list):
     df = pd.DataFrame(index = month_list)    #set dates as index
