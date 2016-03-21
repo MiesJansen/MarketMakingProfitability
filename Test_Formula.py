@@ -73,7 +73,11 @@ def Get_Rand_Bond_List(df_list):
 def Join_Inputs(df, df_betas, df_ff_params, df_liq_prox):
 	# add beta values & set index to datetime from df_diff
 	df = pd.merge(df, df_betas, left_on='cusip_id', 
-						right_on='cusip_id').set_index(df.index)
+						right_on='cusip_id', left_index=True)
+
+	df['trd_exctn_dt_idx'] = pd.to_datetime(df['trd_exctn_dt'],\
+                                        format='%Y%m%d')
+	df.set_index('trd_exctn_dt_idx', inplace=True)
 		
 	#join with fama-french factors on date index
 	df_join_ff = df.join(df_ff_params, lsuffix="_m", rsuffix='_b')
