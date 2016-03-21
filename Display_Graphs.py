@@ -12,18 +12,17 @@ month_keys = dict(zip((''.join([str(dt.month), str(dt.year)]) for dt in month_li
                       range(num_months_CONST)))
 
 def Monthly_Volume_Graph(df_list_daily):
-    vol_arr = [0] * num_months_CONST
-    volume_list = []
+    #concatenate all bonds into one dataframe
+    df_month_all = pd.concat(df_list_daily)
 
-    for df in df_list_daily:
-        for date, df_group in df.groupby(pd.TimeGrouper("M")):
-            month = ''.join([str(date.month),str(date.year)])
-            month_key = month_keys[month]
+    #sum volumes for each month over all bonds
+    df_month_final = df_month_all.resample('M', how={'cusip_id': 'last',\
+                                         'trd_exctn_dt': 'last',\
+                                         'entrd_vol_qt': np.sum,\
+                                         'yld_pt': 'last'}, label='right')
 
-            if df_group.shape[0] > 0:
-                vol_arr[month_key] = vol_arr[month_key] + df_group['entrd_vol_qt'].sum()
-
-    plt.plot(month_list, vol_arr)
+    #plot month dates vs. volume amounts
+    plt.plot(df_month_final.index.values, df_month_final['entrd_vol_qt'])
     plt.ylabel('Volume')
     plt.title('Volume Per Month')
     plt.savefig(cfg.DATA_PATH + cfg.CLEAN_DATA_FILE + '_monthly_volume.png')
