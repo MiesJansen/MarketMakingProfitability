@@ -5,12 +5,6 @@ import matplotlib.pyplot as plt
 import MMP_config as cfg
 import Display_Graphs as dg
 
-month_list = pd.date_range(cfg.dt_start, cfg.dt_end, freq = 'M')
-num_months_CONST = len(month_list)
-
-month_keys = dict(zip((''.join([str(dt.month), str(dt.year)]) for dt in month_list),\
-                      range(num_months_CONST)))
-
 def Monthly_Volume_Graph(df_list_daily):
     #concatenate all bonds into one dataframe
     df_month_all = pd.concat(df_list_daily)
@@ -28,7 +22,7 @@ def Monthly_Volume_Graph(df_list_daily):
     plt.savefig(cfg.DATA_PATH + cfg.CLEAN_DATA_FILE + '_monthly_volume.png')
     plt.close()
 
-    df = pd.DataFrame({'Date': month_list, 'Volume': vol_arr})
+    df = pd.DataFrame({'Date': df_month_final.index.values, 'Volume': df_month_final['entrd_vol_qt']})
     df.to_csv(cfg.DATA_PATH + cfg.CLEAN_DATA_FILE + '_monthly_volume.csv')
 
 def Monthly_Total_Bond_Graph(month_list, num_bond_list):
