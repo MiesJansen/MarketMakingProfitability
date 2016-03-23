@@ -13,6 +13,10 @@ import Test_Formula as tf
 
 ## TO-DO: Reporting stats to a log file
 
+'''
+Uncomment print statements in the code to see detailed debug logs in console
+'''
+
 def Set_Yield_Range(df_list, min_yield, max_yield):
     # Remove outlier bonds
     df_list_daily_clean = []
@@ -161,7 +165,7 @@ if __name__ == "__main__":
     # Prepare liquidity measure for Fama French regression
     df_liq_ff = df_liq.loc[:, 'residual_term']
     
-    # Plot the market liquidity risk
+    # Plot the market liquidity measure and liquidity risk
     dg.Liquidity_Graphs(df_liq)
     
     print "Running Fama French regression..."
@@ -169,20 +173,3 @@ if __name__ == "__main__":
 
     # Test actual bond yields against predicted bond yield from Fama French Beta factors
     tf.Test_Liquidity(df_list_daily_clean, df_liq)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    

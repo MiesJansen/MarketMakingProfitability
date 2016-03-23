@@ -3,6 +3,9 @@
 Created on Mon Mar 21 17:13:05 2016
 
 @author: Chandler
+
+This script runs independently from main.py to clean manually downloaded data
+ from Datastream database
 """
 
 import csv
@@ -43,4 +46,3 @@ df['AMOUNT ISSUED'] = g
 df['AMOUNT OUTSTANDING'] = h
 df1 = df.drop_duplicates(cols='ISIN CODE', take_last=True)
 df1.to_csv('bondData(cleaned).csv')
-

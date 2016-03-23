@@ -1,8 +1,6 @@
 import pandas as pd
 import numpy as np
 
-# Uncomment print statements in the code to see detailed debug logs in console
-
 def remove_cols(df, rm_columns):
     # find common elements in to_drop columns and imported dataframe columns
     cols_to_remove = [col for col in df.columns if col in rm_columns]
@@ -96,18 +94,15 @@ def sameday_corrections_post(df):
     # 3. Raw data with cancellations, reversals, and corrections removed
     df_temp_raw = df[~df['trc_st'].isin(["X", "C", "Y"])]
 
-    merge_columns = ['cusip_id', 'entrd_vol_qt', 'rptd_pr',
-        'trd_exctn_dt', 'trd_exctn_tm', 'rpt_side_cd', 'cntra_mp_id', 
-        'msg_seq_nb']
+    merge_columns = ['cusip_id', 'entrd_vol_qt', 'rptd_pr', 'trd_exctn_dt',
+                     'trd_exctn_tm', 'rpt_side_cd', 'cntra_mp_id', 'msg_seq_nb']
 
     # inner merge temp_raw and temp_deleteI_NEW on merge columns
     # keep index of temp_deleteI_NEW (same as original parameter df)
     df_temp_raw2_del_rows = pd.merge(df_temp_raw[list(merge_columns)], 
-        df_temp_deleteI_NEW[list(merge_columns)],
-        how = 'inner', on=merge_columns, right_index=True)
-
-    #---- Uncomment print statements to verify right number of columns removed
-    # at each step. ------------
+                                     df_temp_deleteI_NEW[list(merge_columns)],
+                                     how = 'inner', on = merge_columns,
+                                     right_index = True)
 
     #print('df_temp_raw shape: ', df_temp_raw.shape)
     #print('df_temp_raw2_del_rows shape: ', df_temp_raw2_del_rows.shape)
@@ -117,9 +112,10 @@ def sameday_corrections_post(df):
 
     #print('df_temp_raw_2 shape: ', df_temp_raw2.shape)
 
-    df_temp_raw3_del_rows = pd.merge(df_temp_raw2[list(merge_columns)], 
-        df_temp_deleteII_NEW[list(merge_columns)],
-        how = 'inner', on=merge_columns, right_index=True)
+    df_temp_raw3_del_rows = pd.merge(df_temp_raw2[list(merge_columns)],
+                                     df_temp_deleteII_NEW[list(merge_columns)],
+                                     how = 'inner', on = merge_columns,
+                                     right_index = True)
 
     #print('df_temp_raw3_del_rows shape: ', df_temp_raw3_del_rows.shape)
 
@@ -133,15 +129,15 @@ def AgencyTransac(df):
     #print "Cleaning agency transactions..."
     
     # Isolate transactions with customers, without commission
-    rows_to_clean = np.all([df['cntra_mp_id'].values == 'C', \
-							df['cmsn_trd'].values == 'N'], \
+    rows_to_clean = np.all([df['cntra_mp_id'].values == 'C',
+                            df['cmsn_trd'].values == 'N'],
                            axis = 0)
     df_temp1 = df[rows_to_clean]
     
     # Identify and drop agency transactions
-    rows_buyAg = np.all([df_temp1['rpt_side_cd'].values == 'B', \
+    rows_buyAg = np.all([df_temp1['rpt_side_cd'].values == 'B',
                          df_temp1['buy_cpcty_cd'].values == 'A'], axis = 0)
-    rows_sellAg = np.all([df_temp1['rpt_side_cd'].values == 'S', \
+    rows_sellAg = np.all([df_temp1['rpt_side_cd'].values == 'S',
                           df_temp1['sell_cpcty_cd'].values == 'A'], axis = 0)
     df_temp2 = df_temp1[np.any([rows_buyAg, rows_sellAg], axis = 0)]
     
@@ -153,15 +149,9 @@ def AgencyTransac(df):
 def Final_Clean(df):
     #print "Cleaning inter-dealer transactions..."
     # Identify one of interdealer transactions, e.g. buy side, and remove it
-    rows_interdealer = np.all([df['cntra_mp_id'].values == 'D', \
+    rows_interdealer = np.all([df['cntra_mp_id'].values == 'D',
                                df['rpt_side_cd'].values == 'B'], axis = 0)
     df_temp1 = df[~rows_interdealer]
-    
-    # Is there a need to label inter-dealer trades' report side to 'D'?
-    ## Re-value 'rpt_side_cd' to 'D', representing inter-dealer transactions
-    #rows_interdealer = np.all([df['cntra_mp_id'] == 'D', \
-                               #df['rpt_side_cd'] == 'S'], axis = 0)
-    #df_temp1.loc[rows_interdealer, 'rpt_side_cd'] = 'D'
     #print "Remaining observations", df_temp1.shape[0]
 
     #print "Removing When-Issued trades..."
@@ -197,9 +187,6 @@ def Final_Clean(df):
     #print "Remaining observations", df_temp7.shape[0]
     
     return df_temp7
-
-
-
 
 def Tailor_Data(df):
     # Note: we haven't done any cleaning regarding scrty_ty_cd and sale_cndtn_cd,
@@ -251,8 +238,5 @@ def clean_bond(df, data_dir, doOutput):
     if (df5.shape[0] > 0) and (doOutput is True):
         bond_name = df5.iloc[0]['cusip_id']
         df5.to_csv(data_dir + bond_name + "_clean.csv", index = False)
-        
-    # Note: this dataframe is not sorted by execution date and time
-    #  this needs to be handled while calculating proxies.
     
     return df5
