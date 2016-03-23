@@ -37,11 +37,20 @@ def Monthly_Total_Bond_Graph(month_list, num_bond_list):
     df.to_csv(cfg.DATA_PATH + cfg.CLEAN_DATA_FILE + '_monthly_total_bonds.csv')
     
 def Liquidity_Graphs(df):
+    # plot market liquidity measure vs date
+    # Note: liquidity measure has a unit of excess yield percentage per volume,
+    #  so the magnitude of vertical axis is likely very small
+    plt.plot(df.index.values, df['liq_month_list_1'])
+    plt.ylabel('Liquidity Measure pi_t')
+    plt.title('Pastor-Stambaugh liquidity measure')
+    
+    plt.savefig(cfg.DATA_PATH + cfg.CLEAN_DATA_FILE + '_liquidity.png')
+    plt.close()
+    
     # Plot market liquidity risk vs date
     plt.plot(df.index.values, df['residual_term'])
     plt.ylabel('Liquidity Risk L_t')
     plt.title('Pastor-Stambaugh liquidity risk measure')
-    #plt.ylim((-2, 2))
     
     plt.savefig(cfg.DATA_PATH + cfg.CLEAN_DATA_FILE + '_liquidity_risk.png')
     plt.close()
