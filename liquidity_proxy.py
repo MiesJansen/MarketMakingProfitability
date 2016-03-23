@@ -136,15 +136,16 @@ def Run_Regression(liq_month_list):
     df = df.drop(df.index[0], inplace = False)
 
     # Run linear regression using equation (4)
-    y,X = dmatrices('liq_delta_1 ~ liq_delta', 
-                    data=df, return_type='dataframe')
+    y,X = dmatrices('liq_delta_1 ~ liq_delta + liq_month_list', 
+                    data = df, return_type = 'dataframe')
     mod = sm.OLS(y,X)
     res = mod.fit()
     
     # Calculate the predicted change in liquidty values
-    df['liq_proxy_values'] = [res.params[0] + res.params[1] * item \
-                              for item in df['liq_delta']]
-
+    df['liq_proxy_values'] = \
+        res.params[0] + res.params[1] * df['liq_delta'] + \
+        res.params[2] * df['liq_month_list']
+        
     # Calculate the actual - predicted change in liquidity --> the residual term
     #  --> the liquidity risk
     df['residual_term'] = df['liq_delta_1'] - df['liq_proxy_values']
