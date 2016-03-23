@@ -20,6 +20,7 @@ def Calculate_First_Proxy(orig_df_list):
     # import corporate bond yield index 
     df_index_values = pd.read_csv(cfg.DATA_PATH + cfg.BOND_IDX_FILE + '.csv')
     
+    ## FIX this can be combined into the next loop to reduce for loop overheads
     for df in orig_df_list:
         if df.shape[0] > 0:
             #apply func to each df in list of dfs, append to list if not 0 length
@@ -28,7 +29,7 @@ def Calculate_First_Proxy(orig_df_list):
     #list of lists of liq coeff per bond
     liq_arr_list = []
     liq_per_month = []
-
+    
     #print 'df_list size: ', len(df_list)
     for df in df_list:
         if df.empty:
@@ -42,7 +43,7 @@ def Calculate_First_Proxy(orig_df_list):
         for date, df_group in df.groupby(pd.TimeGrouper("M")):
             month = ''.join([str(date.month),str(date.year)])
             month_key = month_keys[month]
-
+            
             # When there are some data in current month,
             if df_group.shape[0] > 0:
                 #Run regression per month to get INITIAL liquidity factor
@@ -64,6 +65,8 @@ def Calculate_First_Proxy(orig_df_list):
     #separate liquidity per bond into monthly liquidity over all bonds
     for i in range(num_months_CONST):
         liq_per_month.append([item[i] for item in liq_arr_list])
+        
+    
 
     #perform equation (3) to get average liquidity per month
     for item in liq_per_month:
@@ -130,13 +133,10 @@ def Run_Regression(liq_month_list):
     df['liq_proxy_values'] = [res.params[0] + res.params[1] * item \
                               for item in df['liq_delta']]
 
-    #set first liquidity proxy value to intercept of regression equation
-    #df['liq_proxy_values'][0] = res.params[0]
-
     #calculate thre residual term --> FINAL liquidity term
     df['residual_term'] = df['liq_delta_1'] - df['liq_proxy_values']
 
-    df['residual_term'] = df['residual_term'] * 100
+    df['residual_term'] = df['residual_term'] * 10000
 
     return df
 
@@ -145,6 +145,7 @@ def Plot_Liquidity(df, col_name):
     plt.plot(df.index.values, df[col_name])   #possibly df.index.tolist()????
     plt.ylabel('Liquidity L_t')
     plt.title('Pastor-Stambaugh liquidity measure')
+    plt.ylim((-2, 2))
     
     plt.savefig(cfg.DATA_PATH + cfg.CLEAN_DATA_FILE + '_liquidity.png')
     plt.close()
