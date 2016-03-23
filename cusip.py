@@ -15,8 +15,6 @@ import MMP_config as cfg
 #  respectively, from enhanced TRACE database
 CUSIP_RAW_1 = "cusip_id_start_raw"
 CUSIP_RAW_2 = "cusip_id_end_raw"
-# Output file of unique cusip ids
-CUSIP_LIST = "cusip_id_list"
 
 
 def unique_cusip(cusip_raw_file):
@@ -48,7 +46,7 @@ cusip_id_list = pd.merge(left = df1, right = df2, on = ['cusip_id'], \
                          how = 'inner')
 
 # Output the whole list to csv
-cusip_id_list.to_csv(cfg.DATA_PATH + CUSIP_LIST + ".csv", \
+cusip_id_list.to_csv(cfg.DATA_PATH + cfg.CUSIP_LIST + ".csv", \
                      index = False, header = True)
 
 # Break into smaller sub-dataframe due to TRACE 2GB limitation
