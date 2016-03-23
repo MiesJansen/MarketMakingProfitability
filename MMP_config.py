@@ -38,3 +38,8 @@ FF_DATA_FILE = 'FF_monthly_data'
 # Number of subsections dataframe (because TRACE encourage to keep data
 #  smaller than 2GB)
 NUM_SUB_DF = 2
+
+# Output file of unique cusip ids
+CUSIP_LIST = "cusip_id_list"
+
+MARKET_DELIMITER = "MOODY RATING"
