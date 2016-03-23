@@ -8,17 +8,17 @@ DATA_PATH = './data/'
 OUTPUT_PATH = './data/output/'
 
 # Read aggreated daily data instead of precessing
-readDaily = True
+readDaily = False
 
 # Only when readDaily = False
 # Whether to process raw data or read existing clean data directly
-readRaw = False
+readRaw = True
 
-CLEAN_DATA_FILE = 'list_clean_List0List1'
+CLEAN_DATA_FILE = 'list_clean_IG' #'list_clean_HY'
 
 # Only use when readRaw = True
 # Name of the datafile
-RAW_DATA_NAMES = ['List0', 'List1']
+RAW_DATA_NAMES = ['IG_raw']#['HY_raw']
 doOutput = False    # Whether output individual clean bond data to .csv
 
 # Calculating proxies
@@ -42,4 +42,4 @@ NUM_SUB_DF = 2
 # Output file of unique cusip ids
 CUSIP_LIST = "cusip_id_list"
 
-MARKET_DELIMITER = "MOODY RATING"
+MARKET_DELIMITER = "MOODY_RATING"
