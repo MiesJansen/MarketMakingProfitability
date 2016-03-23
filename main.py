@@ -22,7 +22,8 @@ def Set_Yield_Range(df_list, min_yield, max_yield):
 
     return df_list_daily_clean
 
-def Read_Raw(df_list):
+def Read_Raw():
+    df_list = []
     for datafile in cfg.RAW_DATA_NAMES:
         # Due to large size of raw TRACE data, read by chunks and concat into
         #  one dataset
@@ -46,14 +47,14 @@ def Read_Raw(df_list):
                 df_list.append(df2)
     
     # Output the entire cleaned list to one file, in case of further usage
-    # output this to data path, avoiding mix with individual bond output
     final_df = pd.concat(df_list, ignore_index = True)
     final_df.to_csv(cfg.DATA_PATH + cfg.CLEAN_DATA_FILE + ".csv",\
                     index = False)
 
     return df_list
 
-def Read_Clean(df_list):
+def Read_Clean():
+    df_list = []
     # Read in by chunks to increase memory efficiency
     df_chunks = pd.read_csv(cfg.DATA_PATH + cfg.CLEAN_DATA_FILE + ".csv",
                             chunksize = 100000,
@@ -68,14 +69,14 @@ def Read_Clean(df_list):
     return df_list
 
 def Get_Daily_Df(df_list):
-    # Temparory delete columns, later will put into clean code
+    ## FIX Temparory delete columns, later should put into clean code to reduce
+    ##  size of the dataframe as early as possible
     df_list_new = []
     col_names = ['cusip_id', 'trd_exctn_dt', 'entrd_vol_qt', 'yld_sign_cd', 'yld_pt']
     for df in df_list:
         df = df.loc[:, col_names]
         df_list_new.append(df)
     
-    print "Aggregating data into daily summary..."
     # Aggregate data into daily summary
     df_list_daily = ad.Group_Daily(df_list_new)
     
@@ -87,7 +88,6 @@ def Get_Daily_Df(df_list):
     return df_list_daily
 
 def Read_Daily_Df():
-    #Daily data already processed
     # Read in by chunks to increase memory efficiency
     df_chunks = pd.read_csv(cfg.DATA_PATH + cfg.CLEAN_DATA_FILE + "_daily.csv",
                                 index_col = False, chunksize = 100000,
@@ -122,42 +122,53 @@ if __name__ == "__main__":
     if cfg.readDaily is False:
         df_list = []
         if cfg.readRaw is True:
-            df_list = Read_Raw(df_list)
+            print "Preprocessing raw TRACE data..."
+            df_list = Read_Raw()
     
-        else: #Read processed data, not raw data
-            df_list = Read_Clean(df_list)
+        else: # Read processed data, not raw data
+            print "Reading preprocessed TRACE data..."
+            df_list = Read_Clean()
         
-        #Aggregate trades on same day into one trade for each day    
+        # Aggregate trades on same day into one trade for each day
+        print "Aggregating data into daily summary..."
         df_list_daily = Get_Daily_Df(df_list)
     
     else: #readDaily == True
+        print "Reading aggregated daily summary..."
         df_list_daily = Read_Daily_Df()
 
-    #Remove bonds whose yield exceeds range (callable and convertible bonds fall outside)
+    # Remove bonds whose yield exceeds range. The range is found emperically by
+    #  inspecting existance of special features of bonds with extremely high/low
+    #  yield in the aggregated daily yield dataframe
+    ## FIX this is a temp workaround for not being able to differentiate special
+    ##  bonds such as callable, internotes and etc. Bonds with these special
+    ##  features will cause unusual yield in TRACE data. Need FISD or Bloomberg
+    ##  data to really fix this workaround.
     df_list_daily_clean = Set_Yield_Range(df_list_daily, -4.0, 6.0) #(df, min, max)
 
-    # Graph and output to a file the total volume per month 
+    # Graph and output to a file the total traindg volume per month 
     dg.Monthly_Volume_Graph(df_list_daily_clean)
 
     # Isolate columns for Fama French Regression
     df_list_ff = Isolate_FF_Cols(df_list_daily_clean)
     
     # Calculate proxy liquidity measure, and output to a data file
-    df1 = lpx.Calculate_First_Proxy(df_list_daily_clean)
-    df1.to_csv(cfg.DATA_PATH + cfg.CLEAN_DATA_FILE + "_liquidity.csv",\
-               index = True)
+    print "Calculating liquidity measure and liquidity risk..."
+    df_liq = lpx.Calculate_First_Proxy(df_list_daily_clean)
+    df_liq.to_csv(cfg.DATA_PATH + cfg.CLEAN_DATA_FILE + "_liquidity.csv",\
+                  index = True)
     
     # Prepare liquidity measure for Fama French regression
-    df_liq_ff = df1.loc[:, 'residual_term']
+    df_liq_ff = df_liq.loc[:, 'residual_term']
     
-    # Plot the liquidity measure
-    lpx.Plot_Liquidity(df1, 'residual_term')
+    # Plot the market liquidity risk
+    dg.Liquidity_Graphs(df_liq)
     
     print "Running Fama French regression..."
     ff.FamaFrenchReg(df_list_ff, df_liq_ff)
 
-    # test bond returns against calculated farma french beta factors
-    tf.Test_Liquidity(df_list_daily_clean, df1)
+    # Test actual bond yields against predicted bond yield from Fama French Beta factors
+    tf.Test_Liquidity(df_list_daily_clean, df_liq)
 
 
 

@@ -2,8 +2,11 @@
 Created on Wed Mar 09 15:19:34 2016
 
 @author: Chandler
-@edit by Tom on Fri Mar 11
+
+This script runs independently from main.py to produce a set of cusip ids to be
+ used for requesting data from enhanced TRACE database
 """
+
 
 import pandas as pd
 import numpy as np
@@ -20,7 +23,7 @@ CUSIP_RAW_2 = "cusip_id_end_raw"
 
 def unique_cusip(cusip_raw_file):
     df = pd.read_csv(cfg.DATA_PATH + cusip_raw_file + ".csv", \
-                    low_memory=False) # To silent warnings    
+                     low_memory=False) # To silent warnings
 
     # Obtain a unique list of cusip_id's
     df['cusip_id'] = df['cusip_id'].astype(str)
@@ -39,6 +42,10 @@ def unique_cusip(cusip_raw_file):
 df1 = unique_cusip(CUSIP_RAW_1)
 df2 = unique_cusip(CUSIP_RAW_2)
 
+## FIX The assumption and workaround below is due to not having data of historical
+##  amount outstanding for each bond, which is a critical scaling factor for liquidity
+##  measure calculation. With proper data, the assumption and workaround is not
+##  needed.
 # Find the commonly traded cusip id in two sets (so bonds do not mature or
 #  issue during the period of interest)
 ## ASSUMPTION: when there are no issue or mature, the outstanding amount of the
@@ -52,7 +59,7 @@ df_cusip_TRACE.to_csv(cfg.DATA_PATH + cfg.CUSIP_LIST + "_TRACE.csv", \
 
 # Merge with Datastream data for bond characteristics, and divide bonds into
 #  sub-markets by Moody's (current) Rating
-## FIX with historical rating data from FISD, this division would be better
+## FIX with historical rating data from FISD, this segmentation would be better
 ##  applied while calculating liquidity proxies for each month
 df_datastream = pd.read_csv(cfg.DATA_PATH + "bond_list_datastream.csv")
 df_IG, df_HY = dm.SegmentByRating(df_cusip_TRACE, df_datastream,

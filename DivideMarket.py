@@ -25,4 +25,4 @@ def SegmentByRating(df_trace, df_datastream, sym_delim):
 			HYs.append(df_group)
 	
 	return pd.concat(IGs), pd.concat(HYs)
-		
+	

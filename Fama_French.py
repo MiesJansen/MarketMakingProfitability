@@ -8,10 +8,16 @@ import MMP_config as cfg
 def FamaFrenchReg(df_list, df_liq):
     # Calculate market parameters needed by Fama French Model
     #----------------------------------------------
-    # Include:
+    # Include the following public information:
     #  1. Basic parameters for Fama French 3-factor model
+    #     (http://mba.tuck.dartmouth.edu/pages/faculty/ken.french/data_library.html)
     #  2. DEF and TERM (calculated in Excel by investment bond portfolio yield,
     #      10-year government bond yield, and 1 month T-bill yield
+    #     (https://research.stlouisfed.org/fred2/series/BAMLC0A3CAEY#)
+    #     (https://research.stlouisfed.org/fred2/series/IRLTLT01USM156N#)
+    #     (https://research.stlouisfed.org/fred2/series/TB4WK#)
+    #  3. Using Constant maturity (20-year) Treasury yield as RF, i.e. "risk-free" 
+    #      yield (http://www.federalreserve.gov/releases/h15/data.htm)
     columns = ['Date', 'MKT', 'SMB', 'HML', 'DEF', 'TERM', 'RF']
     df_ff_params = pd.read_csv(cfg.DATA_PATH + cfg.FF_DATA_FILE + ".csv",\
                                usecols = columns, index_col = False,
@@ -55,12 +61,8 @@ def FamaFrenchReg(df_list, df_liq):
 	                        how = 'inner')
 	if df_month_yld.shape[0] > 0:
 	    df_yld_list.append(df_month_yld)
-
-    ## FIX normalize data before running regression!!!
-    ## Keep in mind the method needed to be documented, because the same
-    ##   normalization needed for calculating excess yield with the model
     
-    #run linear regression using equation (9) from pdf for each bond
+    # Run linear regression using equation (9) from pdf for each bond
     #-----------------------------------------------------
     df_list_Beta = []
     headers = ['cusip_id', 'intercept', 'MKT', 'SMB', 'HML', 'DEF', 'TERM', 'L']

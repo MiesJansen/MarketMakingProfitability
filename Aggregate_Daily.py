@@ -5,7 +5,7 @@ import MMP_config as cfg
 
 day_list = pd.date_range(cfg.dt_start, cfg.dt_end, freq = 'D')
 day_keys = dict(zip((''.join([str(dt.day), str(dt.month), str(dt.year)]) \
-	for dt in day_list), range(len(day_list))))
+                     for dt in day_list), range(len(day_list))))
 
 def Group_Daily(df_list):
 	'''Sum volume traded and get mean of yield for all trades within a day.
@@ -22,13 +22,16 @@ def Group_Daily(df_list):
 
 		df['trd_exctn_dt_idx'] = pd.to_datetime(df['trd_exctn_dt'],\
 		                                        format='%Y%m%d')
-		# set DateTime series as index od dataframe for regression above
+		# set DateTime series as index of dataframe for regression above
 		df = df.set_index('trd_exctn_dt_idx')
 
 		df['yld_sign_cd'] = np.where(df['yld_sign_cd'] == '-', -1, 1)
 		df['yld_pt'] = df['yld_sign_cd'] * df['yld_pt']
 
 		# For each day, sum all volumnes, take the END OF DAY yield
+		# Note: "resample" is a critical function in this case to ensure
+		#  efficiency in aggregating data into daily summary. An functionally
+		#  equivalent "for-loop" would use 20x more time
 		df_daily = df.resample('D', how={'cusip_id': 'last',\
 		                                 'trd_exctn_dt': 'last',\
 		                                 'entrd_vol_qt': np.sum,\

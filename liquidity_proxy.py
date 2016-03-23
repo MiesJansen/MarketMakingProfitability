@@ -98,7 +98,7 @@ def Calculate_Liquidity_Coeff(df_list):
 
             # When there are some data in current month,
             if df_group.shape[0] > 0:
-                #Run regression per month to get INITIAL liquidity factor
+                # Run regression (as equation (2)) to get liquidity measure
                 y,X = dmatrices('excess_return_1 ~ yld_pt + volume_and_sign', 
                                 data=df_group, return_type='dataframe')
                 #print date, X.shape
@@ -116,40 +116,40 @@ def Calculate_Liquidity_Coeff(df_list):
 def Run_Regression(liq_month_list):
     df = pd.DataFrame(index = month_list)    #set dates as index
 
-    df['liq_month_list_1'] = liq_month_list                   #liq month t
-    df['liq_month_list'] = df['liq_month_list_1'].shift(1)    #liq month t-1
+    # Liquidity pi_t
+    df['liq_month_list_1'] = liq_month_list
+    # Liquidity pi_t-1
+    df['liq_month_list'] = df['liq_month_list_1'].shift(1)
     # After shift, the first row is not longer valid data
     df = df.drop(df.index[0], inplace = False)
 
-    df['liq_delta_1'] = df['liq_month_list_1'] - df['liq_month_list']  #liq delta t
-    df['liq_delta'] = df['liq_delta_1'].shift(1)                       #liq delta t-1
+    ## FIX A scaling factor to delta_pi_t is dropped here because we do not
+    ##  having historical amount outstanding of the bonds in the portfolio.
+    ##  The scaling factor is (M_t-1 - M_1), where M_t is total dollar value at
+    ##  end of month t-1, representing the total dollar value of the bonds
+    ##  in month t
+    # delta_pi_t = pi_t - pi_t-1
+    df['liq_delta_1'] = df['liq_month_list_1'] - df['liq_month_list']
+    # delta_pi_t-1
+    df['liq_delta'] = df['liq_delta_1'].shift(1)
     # After shift, the first row is not longer valid data
     df = df.drop(df.index[0], inplace = False)
 
-    #run linear regression using equation (2) from pdf 
+    # Run linear regression using equation (4)
     y,X = dmatrices('liq_delta_1 ~ liq_delta', 
                     data=df, return_type='dataframe')
     mod = sm.OLS(y,X)
     res = mod.fit()
     
-    #calculate the liquidty values from proxy equation
+    # Calculate the predicted change in liquidty values
     df['liq_proxy_values'] = [res.params[0] + res.params[1] * item \
                               for item in df['liq_delta']]
 
-    #calculate thre residual term --> FINAL liquidity term
+    # Calculate the actual - predicted change in liquidity --> the residual term
+    #  --> the liquidity risk
     df['residual_term'] = df['liq_delta_1'] - df['liq_proxy_values']
 
+    # Scale the magnitude of the liquidity risk for convenient use in later steps
     df['residual_term'] = df['residual_term'] * 10000
 
     return df
-
-def Plot_Liquidity(df, col_name):
-    # plot liquidity vs date for each individual bond
-    plt.plot(df.index.values, df[col_name])   #possibly df.index.tolist()????
-    plt.ylabel('Liquidity L_t')
-    plt.title('Pastor-Stambaugh liquidity measure')
-    plt.ylim((-2, 2))
-    
-    plt.savefig(cfg.DATA_PATH + cfg.CLEAN_DATA_FILE + '_liquidity.png')
-    plt.close()
-    
