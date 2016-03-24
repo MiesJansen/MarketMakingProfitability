@@ -59,25 +59,32 @@ df_cusip_TRACE.to_csv(cfg.DATA_PATH + cfg.CUSIP_LIST + "_TRACE.csv", \
 
 # Merge with Datastream data for bond characteristics, and divide bonds into
 #  sub-markets by Moody's (current) Rating
+df_datastream = pd.read_csv(cfg.DATA_PATH + "bond_list_datastream.csv")
 ## FIX with historical rating data from FISD, this segmentation would be better
 ##  applied while calculating liquidity proxies for each month
-df_datastream = pd.read_csv(cfg.DATA_PATH + "bond_list_datastream.csv")
-df_IG, df_HY = dm.SegmentByRating(df_cusip_TRACE, df_datastream,
-                                  cfg.MARKET_DELIMITER)
+ddf_segments = dm.SegmentByRating(df_cusip_TRACE, df_datastream)
 
-# Output investment grade and high yield results
-if not df_IG.empty:
-    #print "Number of Investment Grade bond =", df_IG.shape[0]
-    df_IG.to_csv(cfg.DATA_PATH + cfg.MARKET_DELIMITER + "_cusips_IG.csv")
-    df_IG["cusip_id"].to_csv(cfg.DATA_PATH + "cusip_ids_" +\
-                             cfg.MARKET_DELIMITER + "_IG.txt", sep = ' ',
-                             index = False, header = False)
-if not df_HY.empty:
-    #print "Number of High Yield bond =", df_HY.shape[0]
-    df_HY.to_csv(cfg.DATA_PATH + cfg.MARKET_DELIMITER + "_cusips_HY.csv")
-    df_HY["cusip_id"].to_csv(cfg.DATA_PATH + "cusip_ids_" +\
-                             cfg.MARKET_DELIMITER + "_HY.txt", sep = ' ',
-                             index = False, header = False)
+# Output bond cusips based on rating segmentation results
+for seg in cfg.RATING_SEGS:
+    #print "Number of " + seg + " bond = " + str(ddf_segments[seg].shape[0])
+    if not ddf_segments[seg].empty:
+        ddf_segments[seg].to_csv(cfg.DATA_PATH + "MOODY_RATING_cusips_" + \
+                                 seg + ".csv")
+        ddf_segments[seg]["cusip_id"].to_csv(cfg.DATA_PATH + "cusip_ids_MOODY_RATING_" +\
+                                             seg + ".txt", sep = ' ',
+                                             index = False, header = False)
+
+ddf_segments = dm.SegmentBySIC(df_cusip_TRACE, df_datastream)
+
+# Output bond cusips based on rating segmentation results
+for seg in cfg.INDUSTRY_SEGS:
+    #print "Number of " + seg + " bond = " + str(ddf_segments[seg].shape[0])
+    if not ddf_segments[seg].empty:
+        ddf_segments[seg].to_csv(cfg.DATA_PATH + "INDUSTRY_SIC_cusips_" + \
+                                 seg + ".csv")
+        ddf_segments[seg]["cusip_id"].to_csv(cfg.DATA_PATH + "cusip_ids_INDUSTRY_SIC_" +\
+                                             seg + ".txt", sep = ' ',
+                                             index = False, header = False)
 
 
 # With market segments, the following is no longer necessary. Keep this as
