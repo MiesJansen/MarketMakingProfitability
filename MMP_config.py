@@ -42,4 +42,8 @@ NUM_SUB_DF = 2
 # Output file of unique cusip ids
 CUSIP_LIST = "cusip_id_list"
 
-MARKET_DELIMITER = "MOODY_RATING"
+# Name for market segments
+RATING_SEGS = ['IG', 'HY']
+INDUSTRY_SEGS = ['AGRICULTURE', 'MINING', 'CONSTRUCTION', 'MANUFACTURING',
+                 'UTILITIES', 'WHOLESALE', 'RETAIL', 'FINANCE', 'SERVICES',
+                 'ADMINISTRATION']
