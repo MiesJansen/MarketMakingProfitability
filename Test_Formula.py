@@ -4,6 +4,7 @@ import statsmodels.api as sm
 from patsy import dmatrices
 import matplotlib.pyplot as plt
 import random
+from scipy import stats
 
 import MMP_config as cfg
 import Display_Graphs as dg
@@ -35,8 +36,10 @@ def Test_Liquidity(df_list, df_liq_prox):
 
 	final_df = pd.concat(df_list)
 
-	final_df.to_csv(cfg.DATA_PATH + cfg.CLEAN_DATA_FILE + '_return_diff.csv')
+	# Graph actual (TRACE) vs. expected (F.F.) return
+	dg.Return_Vs_Graph(final_df)
 
+	Get_Summary_Stats(final_df)
 
 def Format_Fama_French():
 	# Fama-French factors
@@ -121,3 +124,28 @@ def Clean_Df(df):
 		axis=1)
 
 	return df
+
+def Write_Results(df):
+	df.to_csv(cfg.DATA_PATH + cfg.CLEAN_DATA_FILE + '_return_diff.csv')
+
+	# Plot actual return (TRACE) vs. expected return (F.F.)
+	plt.scatter(df['act_ret_diff'], df['expec_ret_diff'])
+	plt.ylabel('Expected Return')
+	plt.xlabel('Actual Return')
+	plt.title('All Bonds Actual vs. Expected Return')
+    
+	plt.savefig(cfg.DATA_PATH + cfg.CLEAN_DATA_FILE + '_return_diff.png')
+	plt.close()
+
+def Get_Summary_Stats(df):
+	slope, intercept, r_value, p_value, std_err = \
+		stats.linregress(df['act_ret_diff'], df['expec_ret_diff'])
+
+	r2_value = r_value**2
+
+	df_stats = pd.DataFrame({'slope':[slope], 'intercept':[intercept],
+		'r2_value':[r2_value], 'p_value':[p_value], 'std_err':[std_err]})
+
+	df_stats.to_csv(cfg.DATA_PATH + cfg.CLEAN_DATA_FILE + '_summary_stats.csv', index=False)
+
+

@@ -55,3 +55,14 @@ def Liquidity_Graphs(df):
     plt.savefig(cfg.DATA_PATH + cfg.CLEAN_DATA_FILE + '_liquidity_risk.png')
     plt.close()
     
+def Return_Vs_Graph(df):
+    df.to_csv(cfg.DATA_PATH + cfg.CLEAN_DATA_FILE + '_return_diff.csv')
+
+    # Plot actual return (TRACE) vs. expected return (F.F.)
+    plt.plot(df['act_ret_diff'], df['expec_ret_diff'])
+    plt.ylabel('Expected Return')
+    plt.xlabel('Actual Return')
+    plt.title('All Bonds Actual vs. Expected Return')
+    
+    plt.savefig(cfg.DATA_PATH + cfg.CLEAN_DATA_FILE + '_return_diff.png')
+    plt.close()
