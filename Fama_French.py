@@ -65,8 +65,10 @@ def FamaFrenchReg(df_list, df_liq):
     # Run linear regression using equation (9) from pdf for each bond
     #-----------------------------------------------------
     df_list_Beta = []
-    # list of adjusted r2 values for all bonds
-    adj_rsqaured_list = []
+    # list of adjusted r2 values and p-values for all bonds
+    df_stats = pd.DataFrame(columns= ('cusip_id', 'adj_rsqaured', 
+                                'tvalues', 'pvalues'))
+    index = 0
     headers = ['cusip_id', 'intercept', 'MKT', 'SMB', 'HML', 'DEF', 'TERM', 'L']
     for df in df_yld_list:
         df['e_return'] = df['yld_pt'] - df['RF']
@@ -78,8 +80,10 @@ def FamaFrenchReg(df_list, df_liq):
         # trades over >= 10 months for meaningful r2 value
         if df.shape[0] >= 10:
             #print df['cusip_id'][0], res.rsquared, res.rsquared_adj
-            adj_rsqaured_list.append(res.rsquared_adj)
-        
+            df_stats.loc[index] = [df['cusip_id'][0], res.rsquared_adj, 
+                                   res.tvalues[6], res.pvalues[6]]
+            index = index + 1
+
         # Add cusip id and all regression results to a list
         beta_list = [df.get_value(df.index[0], 'cusip_id')]
         beta_list += list(res.params[:7])
@@ -90,3 +94,5 @@ def FamaFrenchReg(df_list, df_liq):
     df_Beta.to_csv(cfg.DATA_PATH + cfg.CLEAN_DATA_FILE + "_Betas.csv",
                    index = False)
 
+    df_stats.to_csv(cfg.DATA_PATH + cfg.CLEAN_DATA_FILE + '_stats_summary.csv', 
+                index=False)
