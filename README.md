@@ -1,7 +1,7 @@
 Python Version Used --> Python 2.7 
 (Recommend installing Anaconda which has many of the following libraries preinstalled)
 
-Python Library Dependencies 
+Python Package Dependencies 
 
 1. pandas
 
@@ -75,7 +75,7 @@ Instructions to Run
 
 ---------------------------------------------------------------------
 
-Files Generated --> All contained in "./data"
+Files Generated After Execution (in "./data")
 
 1. "CLEAN_DATA_FILE" value = "filename_clean"
 
@@ -88,7 +88,7 @@ Files Generated --> All contained in "./data"
   3.1. Actual bond return minus risk free rate 
        ("BofA_Corporate_Bond_Index")
 
-  3.2. Expected return minues risk free rate from Fama-French model
+  3.2. Expected return minus risk free rate from Fama-French model
 
   3.3. Difference between actual and expected return.
 
