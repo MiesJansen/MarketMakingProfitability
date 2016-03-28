@@ -17,11 +17,11 @@ Instructions to Run
   5.2. Set "RAW_DATA_NAMES" with an array of filenames of raw TRACE 
        data files downloaded.
   
-  		5.2.1. If only one file, set to an array of one value.
+  	  5.2.1. If only one file, set to an array of one value.
   
   5.3. Set "readRaw" = True. Program will read raw TRACE data files.
   
-  		5.3.1. If already generated the clean data file set 
+  	  5.3.1. If already generated the clean data file set 
   			   "readRaw" = False.
   
   5.4. Set "CLEAN_DATA_FILE" with a filename. The data written will 
@@ -35,10 +35,10 @@ Instructions to Run
   
   6.2 Set "readDaily" = True.
   
-  		--> Note - Will now read "CLEAN_DATA_FILE" instead of 
+  	  --> Note - Will now read "CLEAN_DATA_FILE" instead of 
   	               "RAW_DATA_NAMES".
   
-  		--> Note - Reading "CLEAN_DATA_FILE" much faster than 
+  	  --> Note - Reading "CLEAN_DATA_FILE" much faster than 
   		           reading "RAW_DATA_NAMES".
 
 ---------------------------------------------------------------------
