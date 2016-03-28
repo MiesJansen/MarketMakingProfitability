@@ -1,3 +1,30 @@
+Python Version Used --> Python 2.7 
+(Recommend installing Anaconda which has many of the following libraries preinstalled)
+
+Python Library Dependencies 
+
+1. pandas
+
+2. numpy
+
+3. matplotlib.pyplot
+
+4. statsmodels.api
+
+5. random
+
+6. csv
+
+7. tablib
+
+8. os
+
+9. from patsy import dmatrices
+
+10. from scipy import stats
+
+--------------------------------------------------------------------
+
 Instructions to Run
 
 1. Create main directory folder. For example "C:/Users/Project". 
@@ -64,7 +91,7 @@ Files Generated --> All contained in "./data"
 
   4.1. Scatterplot of actual return vs. expected return.
 
-5. ["filename_clean"] + ["_summary_stats.csv"]
+5. ["filename_clean"] + ["_stats_summary.csv"]
 
   5.1. R^2, t test-statistic, and p value for each bond return 
        calculated in Fama-French equation.
