@@ -29,11 +29,12 @@ Instructions to Run
 
 1. Create main directory folder. For example "C:/Users/Project". 
 
-2. Also create subdirectory folder "./data". For example 
-   "C:/Users/Project/data". 
+2. Also create subdirectory folder "./data". 
+   For example "C:/Users/Project/data". 
 
-3. Download enhanced TRACE data from WRDS database. Included all 
-   columns when downloading. Specify date format as YYMMDD.
+3. Download enhanced TRACE data from WRDS database. 
+   Included all columns when downloading. 
+   Specify date format as YYMMDD.
 
 4. Upload TRACE data file into ./data.
 
@@ -46,13 +47,17 @@ Instructions to Run
   
     5.2.1. If only one file, set to an array of one value.
   
-  5.3. Set "readRaw" = True. Program will read raw TRACE data files.
+  5.3. Set "readRaw" = True. 
+  	   Program will read raw TRACE data files.
   
     5.3.1. If already generated the clean data file set 
 		   "readRaw" = False.
   
-  5.4. Set "CLEAN_DATA_FILE" with a filename. The data written will 
-       be cleaned TRACE data and have all same-day trades aggregated into one daily trade.
+  5.4. Set "CLEAN_DATA_FILE" with a filename. 
+  	   The data written to "CLEAN_DATA_FILE" will be the cleaned TRACE data and have all same-day trades aggregated into one daily trade.
+
+  --> Note - Upon completion of reading raw TRACE files, cleaned 
+  	  files will be generated. Can use clean files directly now as a substitute for raw data files to save program run time.
 
 6. Respecify parameters in "MMP_config.py" after running program 
    with raw TRACE data files.
@@ -106,8 +111,8 @@ Files Generated --> All contained in "./data"
 
 10. ["filename_clean"] + ["_liquidity.csv"]
 
-  10.1. Liquidity coefficient per month calculated from equation (3) 
-        in 'Liquiidity risk and expected corporate bond return' paper.
+  10.1. Liquidity coefficient per month calculated from equation 
+  		(3) in 'Liquiidity risk and expected corporate bond return' paper.
 
 11. ["filename_clean"] + ["_liquidity.pdf"]
 
