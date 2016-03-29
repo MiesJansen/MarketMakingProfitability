@@ -52,14 +52,21 @@ df2 = unique_cusip(CUSIP_RAW_2)
 ##  market stays constant
 df_cusip_TRACE = pd.merge(left = df1, right = df2, on = ['cusip_id'], \
                           how = 'inner')
-
-# Output the whole list to csv
-df_cusip_TRACE.to_csv(cfg.DATA_PATH + cfg.CUSIP_LIST + "_TRACE.csv", \
-                      index = False, header = True)
+#print "Total number of TRACE corporate bonds is", df_cusip_TRACE.shape[0]
 
 # Merge with Datastream data for bond characteristics, and divide bonds into
 #  sub-markets by Moody's (current) Rating
 df_datastream = pd.read_csv(cfg.DATA_PATH + "bond_list_datastream.csv")
+
+# Output cusip id list for entire market (after merging with Datastream)
+df_cusips = pd.merge(df_cusip_TRACE, df_datastream, on = ['cusip_id'],
+                     how = 'inner')
+#print "Total number of corporate bonds is", df_cusips.shape[0]
+df_cusips.to_csv(cfg.DATA_PATH + cfg.CUSIP_LIST + "_TRACE.csv",
+                 index = False, header = True)
+df_cusips['cusip_id'].to_csv(cfg.DATA_PATH + cfg.CUSIP_LIST + "_TRACE.txt",
+                             sep = ' ', index = False, header = False)
+
 ## FIX with historical rating data from FISD, this segmentation would be better
 ##  applied while calculating liquidity proxies for each month
 ddf_segments = dm.SegmentByRating(df_cusip_TRACE, df_datastream)
@@ -85,15 +92,3 @@ for seg in cfg.INDUSTRY_SEGS:
         ddf_segments[seg]["cusip_id"].to_csv(cfg.DATA_PATH + "cusip_ids_INDUSTRY_SIC_" +\
                                              seg + ".txt", sep = ' ',
                                              index = False, header = False)
-
-
-# With market segments, the following is no longer necessary. Keep this as
-#  comment, as it might become useful when number of corporate bonds increases
-'''
-# Break into smaller sub-dataframe due to TRACE 2GB limitation
-ids = cusip_id_list['cusip_id']
-ids_lists = np.array_split(ids, cfg.NUM_SUB_DF)
-for i in range(cfg.NUM_SUB_DF):
-    ids_lists[i].to_csv(cfg.DATA_PATH + CUSIP_LIST + str(i) + ".txt", sep = ' ', \
-                        index = False, header = False)
-'''

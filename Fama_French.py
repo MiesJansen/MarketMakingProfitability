@@ -66,8 +66,9 @@ def FamaFrenchReg(df_list, df_liq):
     #-----------------------------------------------------
     df_list_Beta = []
     # list of adjusted r2 values and p-values for all bonds
-    df_stats = pd.DataFrame(columns= ('cusip_id', 'adj_rsqaured', 
-                                'tvalues', 'pvalues'))
+    df_stats = pd.DataFrame(columns= ('cusip_id', 'adj_rsqaured', 'intert', 'interp',
+                                      'MKTt', 'MKTp', 'SMBt', 'SMBp', 'HMLt', 'HMLp',
+                                      'DEFt', 'DEFp', 'TERMt', 'TERMp', 'Lt', 'Lp'))
     index = 0
     headers = ['cusip_id', 'intercept', 'MKT', 'SMB', 'HML', 'DEF', 'TERM', 'L']
     for df in df_yld_list:
@@ -80,7 +81,13 @@ def FamaFrenchReg(df_list, df_liq):
         # trades over >= 10 months for meaningful r2 value
         if df.shape[0] >= 10:
             #print df['cusip_id'][0], res.rsquared, res.rsquared_adj
-            df_stats.loc[index] = [df['cusip_id'][0], res.rsquared_adj, 
+            df_stats.loc[index] = [df['cusip_id'][0], res.rsquared_adj,
+                                   res.tvalues[0], res.pvalues[0],
+                                   res.tvalues[1], res.pvalues[1],
+                                   res.tvalues[2], res.pvalues[2],
+                                   res.tvalues[3], res.pvalues[3],
+                                   res.tvalues[4], res.pvalues[4],
+                                   res.tvalues[5], res.pvalues[5],
                                    res.tvalues[6], res.pvalues[6]]
             index = index + 1
 

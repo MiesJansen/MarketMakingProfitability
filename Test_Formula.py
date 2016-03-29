@@ -39,6 +39,7 @@ def Test_Liquidity(df_list, df_liq_prox):
 	# Graph actual (TRACE) vs. expected (F.F.) return
 	dg.Return_Vs_Graph(final_df)
 
+	Write_Results(final_df)
 	Get_Summary_Stats(final_df)
 
 def Format_Fama_French():
@@ -74,7 +75,7 @@ def Get_Rand_Bond_List(df_list):
 def Join_Inputs(df, df_betas, df_ff_params, df_liq_prox):
 	# add beta values & set index to datetime from df_diff
 	df = pd.merge(df, df_betas, left_on='cusip_id', 
-						right_on='cusip_id', left_index=True)
+	              right_on='cusip_id', left_index=True)
 
 	df['trd_exctn_dt_idx'] = pd.to_datetime(df['trd_exctn_dt'],\
                                         format='%Y%m%d')
@@ -86,9 +87,9 @@ def Join_Inputs(df, df_betas, df_ff_params, df_liq_prox):
 	df_join_ff = df_join_ff[pd.notnull(df_join_ff['MKT_b'])]
 
 	# Combine liquidity factor L_t
-	df_liq_prox_values = df_liq_prox['liq_delta_1']
+	df_liq_prox_values = df_liq_prox['residual_term']
 	df_join_liq = df_join_ff.join(df_liq_prox_values)
-	df_join_liq = df_join_liq[pd.notnull(df_join_liq['liq_delta_1'])]
+	df_join_liq = df_join_liq[pd.notnull(df_join_liq['residual_term'])]
 
 	return df_join_liq
 	
@@ -104,7 +105,7 @@ def Calculate_Returns(df):
 			 df['HML_b'] * df['HML_m'] + \
 			 df['DEF_b'] * df['DEF_m'] + \
 			 df['TERM_b'] * df['TERM_m'] + \
-			 df['L'] * df['liq_delta_1'])
+			 df['L'] * df['residual_term'])
 
 	#Calculate diff b/w actual and expected return
 	df['return_delta'] = df['act_ret_diff'] - df['expec_ret_diff']
@@ -120,7 +121,7 @@ def Clean_Df(df):
 		['trd_exctn_dt', 'yld_pt', 'entrd_vol_qt', 'intercept', 
 		 'MKT_b', 'MKT_m', 'SMB_b', 'SMB_m', 'HML_b', 'HML_m', 
 		 'DEF_b', 'DEF_m', 'TERM_b', 'TERM_m', 'RF', 'L', 
-		 'liq_delta_1'],
+		 'residual_term'],
 		axis=1)
 
 	return df
@@ -134,7 +135,7 @@ def Write_Results(df):
 	plt.xlabel('Actual Return')
 	plt.title('All Bonds Actual vs. Expected Return')
     
-	plt.savefig(cfg.DATA_PATH + cfg.CLEAN_DATA_FILE + '_return_diff.png')
+	plt.savefig(cfg.DATA_PATH + cfg.DATA_CLEAN_FILE + '_return_diff.png')
 	plt.close()
 
 def Get_Summary_Stats(df):
