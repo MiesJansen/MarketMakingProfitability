@@ -1,126 +1,102 @@
-Python Version Used --> Python 2.7 
-(Recommend installing Anaconda which has many of the following libraries preinstalled)
+# Project Manual
+This manual provides detailed instruction to reproduce the analysis of this project.
 
-Python Package Dependencies 
+## Programming Environment
+* Python version: Python 2.7.11
+  * __Anaconda__ distribution for Python 2.7 is highly recommended since it has many of the following libraries preinstalled
 
-1. pandas
-
-2. numpy
-
-3. matplotlib.pyplot
-
-4. statsmodels.api
-
-5. random
-
-6. csv
-
-7. tablib
-
-8. os
-
-9. from patsy import dmatrices
-
-10. from scipy import stats
-
---------------------------------------------------------------------
-
-Instructions to Run
-
-1. Create main directory folder. For example "C:/Users/Project". 
-
-2. Also create subdirectory folder "./data". 
-   For example "C:/Users/Project/data". 
-
-3. Download enhanced TRACE data from WRDS database. 
-   Included all columns when downloading. 
-   Specify date format as YYMMDD.
-
-4. Upload TRACE data file into ./data.
-
-5. Specify all parameters in "MMP_config.py"
-  
-  5.1. Set "dt_start" and "dt_end" from downloaded TRACE data
-  
-  5.2. Set "RAW_DATA_NAMES" with an array of filenames of raw TRACE 
-       data files downloaded.
-  
-    5.2.1. If only one file, set to an array of one value.
-  
-  5.3. Set "readRaw" = True. 
-  	   Program will read raw TRACE data files.
-  
-    5.3.1. If already generated the clean data file set 
-		   "readRaw" = False.
-  
-  5.4. Set "CLEAN_DATA_FILE" with a filename. 
-  	   The data written to "CLEAN_DATA_FILE" will be the cleaned TRACE data and have all same-day trades aggregated into one daily trade.
-
-  --> Note - Upon completion of reading raw TRACE files, cleaned 
-  	  files will be generated. Can use clean files directly now as a substitute for raw data files to save program run time.
-
-6. Respecify parameters in "MMP_config.py" after running program 
-   with raw TRACE data files.
-  
-  6.1 Set "readRaw" = False. Don't need to read raw 
-      data file anymore because generated clean data file.
-  
-  6.2 Set "readDaily" = True.
-
-  --> Note - Will now read "CLEAN_DATA_FILE" instead of 
-             "RAW_DATA_NAMES".
-  
-  --> Note - Reading "CLEAN_DATA_FILE" much faster than 
-			 reading "RAW_DATA_NAMES".
-
----------------------------------------------------------------------
-
-Files Generated After Execution (in "./data")
-
-1. "CLEAN_DATA_FILE" value = "filename_clean"
-
-2. ["filename_clean"] + ["_Betas.csv"] 
-  
-  2.1. Values calculated in Fama-Fench model 
-
-3. ["filename_clean"] + ["_return_diff.csv"]
-
-  3.1. Actual bond return minus risk free rate 
-       ("BofA_Corporate_Bond_Index")
-
-  3.2. Expected return minus risk free rate from Fama-French model
-
-  3.3. Difference between actual and expected return.
-
-4. ["filename_clean"] + ["_return_diff.pdf"]
-
-  4.1. Scatterplot of actual return vs. expected return.
-
-5. ["filename_clean"] + ["_stats_summary.csv"]
-
-  5.1. R^2, t test-statistic, and p value for each bond return 
-       calculated in Fama-French equation.
-
-6. ["filename_clean"] + ["_monthly_volume.csv"]
-
-7. ["filename_clean"] + ["_monthly_volume.pdf"]
-
-8. ["filename_clean"] + ["_monthly_total_bonds.csv"]
-
-9. ["filename_clean"] + ["_monthly_total_bonds.pdf"]
-
-10. ["filename_clean"] + ["_liquidity.csv"]
-
-  10.1. Liquidity coefficient per month calculated from equation 
-  		(3) in 'Liquiidity risk and expected corporate bond return' paper.
-
-11. ["filename_clean"] + ["_liquidity.pdf"]
-
-12. ["filename_clean"] + ["_liquidity_risk.pdf"]
-
-  12.1. Lt calculated from residual term in equation (5) in 
-        'Liquiidity risk and expected corporate bond return' paper.
+* Python Package Dependencies (older versions are not tested)
+  1. pandas (0.17.1)
+  2. numpy (1.10.4)
+  3. matplotlib (1.5.1)
+  4. statsmodels (0.6.1)
+  5. csv (1.0)
+  6. patsy (0.4.1)
+  7. scipy (0.17.0)
+  8. tablib (0.11.2)
 
 
+## Data Collection
+### TRACE and Datastream data
+1. Clone this repository to a local directory. 
 
+2. Download sample data of [Enhanced TRACE](https://wrds-web.wharton.upenn.edu/wrds/ds/trace/trace_enhanced/) from the WRDS database to sample cusip IDs. (A registered and subscribed account is required to download TRACE data)
+  1. Choose _Date range_ to be the 1st month of interested period, select "_Search the entire database_" and select only two columns : **Bond Symbol** and **CUSIP**;
+  2. Change the _Output Format_ to _comma-delimited text**(*.csv)**_, and keep everything else default;
+  3. Click _Submit Query_ to acquire datasets. Wait for 10 sec to a few minutes, depending on size of the dataset, until a link to the _.csv_ file appears below the query form;
+  4. Save the data file with name "**cusip_id_start_raw.csv**".
+  5. Repeat 1~4 with _Date range_ set to last month of interested period. Save the data file with name "**cusip_id_end_raw.csv**".
+
+3. Download Datastream data from a Datastream Terminal.
+  * Download list of bonds with fields **ISIN**, **SIC** and **MOODY'S RATING** as file "_bond_list_datastream.csv_".
+  * Open "_bond_list_datastream.csv_" with Excel, create a new column named "**cusip_id**" with each cell containing formula `=MID(ISIN_CELL, 3, 9)`.
+  * Rename "_MOODY'S RATING_" to "_MOODY_RATING_" for easier Python usage.
+
+4. Put the above data files in _./data/_ folder of the repository.
+
+5. In command prompt or Anaconda prompt, run `\MarketMakingProfitability> python cusip.py` to generate a list of cusip IDs
+  * A master list of cusip ID "_cusip_id_list_TRACE.txt_" is generated, as well as txt files for cusip ID lists of each market segment. The following instruction will use the master list as example.
+
+6. Go to [Enhanced TRACE](https://wrds-web.wharton.upenn.edu/wrds/ds/trace/trace_enhanced/) again to download raw data to be used for analysis
+  1. Choose _Date range_ to be the full length of the interested period;
+  2. Choose "_CUSIP_" as search option and choose to upload a file. Upload "_cusip_id_list_TRACE.txt_" generated by step 5;
+  3. Select **ALL** variables and _Output Format_ as _(.csv)_;
+  4. Submit the query. Download the file to _.\data\_ folder.
+
+### Fama/French factors and other public index data
+1. Go to Kenneth R. French's [data library](http://mba.tuck.dartmouth.edu/pages/faculty/ken.french/data_library.html)
+  1. Download the **Fama/French 3 Factors** in csv format;
+  2. Open the file with Excel, remove excess information (only keep data and column names "**Date**", "**MKT**", "**SMB**", "**HML**" and "**RF**");
+  3. Change the format of the Date colume to _yyyymm_;
+  4. Rename the file to "**FF_monthly_data.csv**"
+
+2. Go to the Fed [historical data](http://www.federalreserve.gov/releases/h15/data.htm) page.
+  1. Download the monthly data of 20-year Nominal Treasury constant maturities;
+  2. Copy the data in the yield column to replace "**RF**" column in "_FF_monthlly_data.csv_" (make sure the dates are matched).
+
+3. Go to the [FRED Economic Data](https://research.stlouisfed.org/fred2/) website to download the following three datasets
+  1. [BofA Merrill Lynch US Corporate A Effective Yield](https://research.stlouisfed.org/fred2/series/BAMLC0A3CAEY#): Download **Monthly** data (aggregated by **End of Period**), copy the data column to "_FF_monthlly_data.csv_" as a new column named "**IGBonds**";
+  2. [10-year US Government Bond Yields benchmark](https://research.stlouisfed.org/fred2/series/IRLTLT01USM156N#): Download **Monthly** data, copy the data column to "_FF_monthlly_data.csv_" as a new column named "**Gbond**";
+  3. [4-week Treasury Bill](https://research.stlouisfed.org/fred2/series/TB4WK#): Download **Monthly** data, copy the data column to "_FF_monthlly_data.csv_" as a new column named "**Tbill**";
+
+4. Open "_FF_monthlly_data.csv_" with Excel, create a new column "**DEF**" by `=IGBonds_cell - Gbond_cell` and a new column "**TERM**" by `=Gbond_cell - Tbill_cell`. Save "_FF_monthlly_data.csv_" in _.\data\ folder.
+
+5. Download [BofA Merrill Lynch US Corporate A Effective Yield](https://research.stlouisfed.org/fred2/series/BAMLC0A3CAEY#) again in **Daily, Close** data, save to _.\data\ as "**BofA_Corporate_Bond_Index.csv**".
+
+
+## Profitability Analysis
+Now with all data ready in data folder, we can run the entire analysis procedure automatically with proper parameters set.
+
+1. Adjust configuration parameters by editing "_MMP_config.py_" file
+  * With raw datafile, set `readDaily = False` and `readRaw = True`.
+  * Set the names of the raw files to parameter `RAW_DATA_NAMES` as a list. Note that all given raw files will be merged to one large raw file to run analysis as one portfolio.
+  * Set `doOutput = False` to speed up data processing. If `doOutput = True`, during the data cleaning, all transactions of each bond will be output to one csv file in folder _.\data\output\_.
+  * Set `dt_start` and `dt_end` to the corresponded dates in **yyyymmdd** format.
+  * Set `CLEAN_DATA_FILE` to be the desired prefix for analysis outputs. 
+
+2. In command prompt, run `MarketMakingProfitability> python main.py` to start processing.
+  * Uncomment `print` statements in main function of "_main.py_" to output progress logs in console.
+  * Depending the size of the raw dataset, this process will take from 5 mins to 1 hour.
+
+3. After first run of the script, a "_<CLEAN_DATA_FILE>_daily.csv_" file is generated. In "_MMP_config.py_" file, set `readDaily = True` and `readRaw = False` to speed up future analysis time.
+
+
+## Analysis Output
+The Python script will produce a series of output csv files as intermediate and final results of the analysis. All the files will have prefix `CLEAN_DATA_FILE` set in "_MMP_config.py_". Use `CLEAN_DATA_FILE = "list_clean_UTILITIES"` as an example.
+
+1. **list_clean_UTILITIES.csv**: Fully processed clean transaction data
+
+2. **list_clean_UTILITIES_daily.csv**: transaction data aggregated into daily yield
+
+3. **list_clean_UTILITIES_monthly_total_bond.csv**: number of bonds traded each month 
+
+4. **list_clean_UTILITIES_monthly_volume.csv**: aggregated dollar volume traded each month 
+
+5. **list_clean_UTILITIES_liquidity.csv**: monthly liquidity measure and liquidity risk measure
+
+6. **list_clean_UTILITIES_Betas.csv**: Betas of each bond resulted from Fama French regression
+
+7. **list_clean_UTILITIES_return_diff.csv**: actual and expected yield from Fama French model, and regression error term
+
+8. **list_clean_UTILITIES_stats_summary.csv**: adjusted R-squared of Fama French regression, and t-stats and p-stats of the Betas of each bond
 
